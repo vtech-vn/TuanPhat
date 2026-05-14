@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In Báo Giá - Tuấn Phát</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f4f6f8;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="appFrame" src="about:blank"></iframe>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbwM0RJimYcyl2eLTfNdaRZf2gU6pSUcqMub9Sp-cAcQW0g16HkPEpdxb3ovLE8z9tgj/exec";
+        
+        const paramsString = urlParams.toString();
+        const finalUrl = paramsString ? scriptUrl + "?" + paramsString : scriptUrl;
+        
+        document.getElementById('appFrame').src = finalUrl;
+    </script>
+</body>
+</html>
