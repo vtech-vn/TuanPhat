@@ -27,43 +27,45 @@
         if (!id) {
             document.getElementById('loader').innerHTML = "<div class='error-text'>LỖI: Vui lòng cung cấp tham số ?id= (Ví dụ: ?id=702125dc)</div>";
         } else {
-            // Lấy dữ liệu HTML thô từ Apps Script API
             const scriptUrl = "https://script.google.com/macros/s/AKfycbwM0RJimYcyl2eLTfNdaRZf2gU6pSUcqMub9Sp-cAcQW0g16HkPEpdxb3ovLE8z9tgj/exec?api=html&id=" + id;
             
-            fetch(scriptUrl)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.html) {
-                        let finalHtml = data.html;
-                        
-                        // Chèn script thay logo cục bộ giống như HiepLuc
-                        const injectScript = `
-                            <script>
-                                setTimeout(() => {
-                                    const logoImg = document.querySelector('.logo-wrap img');
-                                    if (logoImg) {
-                                        logoImg.src = 'LOGO TUẤN PHÁT-02.png';
-                                    } else {
-                                        const wrap = document.querySelector('.logo-wrap');
-                                        if (wrap) {
-                                            wrap.innerHTML = '<img src="LOGO TUẤN PHÁT-02.png" style="height:78px;width:auto;object-fit:contain;">';
-                                        }
+            // Sử dụng JSONP để vượt rào cản CORS của Google Apps Script
+            const callbackName = 'handleQuote';
+            window[callbackName] = function(data) {
+                if (data && data.html) {
+                    let finalHtml = data.html;
+                    
+                    const injectScript = `
+                        <script>
+                            setTimeout(() => {
+                                const logoImg = document.querySelector('.logo-wrap img');
+                                if (logoImg) {
+                                    logoImg.src = 'LOGO TUẤN PHÁT-02.png';
+                                } else {
+                                    const wrap = document.querySelector('.logo-wrap');
+                                    if (wrap) {
+                                        wrap.innerHTML = '<img src="LOGO TUẤN PHÁT-02.png" style="height:78px;width:auto;object-fit:contain;">';
                                     }
-                                }, 100);
-                            <\/script>
-                        `;
-                        finalHtml = finalHtml.replace('</body>', injectScript + '</body>');
-                        
-                        document.open();
-                        document.write(finalHtml);
-                        document.close();
-                    } else {
-                        document.getElementById('loader').innerHTML = "<div class='error-text'>Lỗi tải dữ liệu. Báo giá không tồn tại.</div>";
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('loader').innerHTML = "<div class='error-text'>Lỗi kết nối đến máy chủ.</div>";
-                });
+                                }
+                            }, 100);
+                        <\/script>
+                    `;
+                    finalHtml = finalHtml.replace('</body>', injectScript + '</body>');
+                    
+                    document.open();
+                    document.write(finalHtml);
+                    document.close();
+                } else {
+                    document.getElementById('loader').innerHTML = "<div class='error-text'>Lỗi: Không tìm thấy nội dung báo giá.</div>";
+                }
+            };
+            
+            const script = document.createElement('script');
+            script.src = scriptUrl + "&callback=" + callbackName;
+            script.onerror = function() {
+                document.getElementById('loader').innerHTML = "<div class='error-text'>Lỗi kết nối đến máy chủ Apps Script.</div>";
+            };
+            document.body.appendChild(script);
         }
     </script>
 </body>
