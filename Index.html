@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    :root{--green:#1a5c38;--green-dark:#134a2d;--green-light:#e8f2ec;--charcoal:#2c2c2c;--grey:#f5f5f5;--grey-border:#e0e0e0;--muted:#666666;--gold-light:#e8d170;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#eef0f3;padding:20px;color:var(--charcoal);-webkit-font-smoothing:antialiased;}
+    .page{max-width:1200px;margin:auto;background:white;box-shadow:0 8px 40px rgba(0,0,0,0.12);}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:22px 40px;border-bottom:2.5px solid var(--green);}
+    .logo-wrap img{height:78px;width:auto;object-fit:contain;}
+    .company-info{text-align:right;font-size:13px;line-height:1.8;}
+    .company-name{font-size:15px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:0.3px;}
+    .info-line{display:flex;align-items:center;justify-content:flex-end;gap:6px;color:var(--muted);font-size:12.5px;}
+    .divider-line{margin:0 4px;}
+    .project-header{text-align:center;padding:28px 40px 22px;}
+    .project-name{font-size:20px;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;}
+    .project-address{font-size:18px;color:var(--muted);margin-top:5px;font-weight:400;text-transform:uppercase;letter-spacing:0.5px;}
+    .content-area{padding:0 30px 20px;}
+    .section-header{display:flex;align-items:center;gap:14px;background:var(--grey);border:1px solid var(--grey-border);border-bottom:none;padding:11px 16px;border-radius:6px 6px 0 0;}
+    .section-icon{width:35px;height:35px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .section-title{font-size:14px;font-weight:800;color:var(--charcoal);text-transform:uppercase;letter-spacing:0.8px;}
+    .table-wrapper{overflow-x:auto;border:1px solid var(--grey-border);border-radius:0 0 6px 6px;margin-bottom:18px;}
+    table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;}
+    th{background:var(--green);color:white;font-weight:700;text-transform:uppercase;font-size:11.5px;letter-spacing:0.5px;padding:11px 3px;border-right:1px solid rgba(255,255,255,0.15);text-align:center;}
+    th:last-child{border-right:none;}
+    td{border-bottom:1px solid var(--grey-border);border-right:1px solid var(--grey-border);padding:13px 3px;vertical-align:middle;word-wrap:break-word;}
+    td:last-child{border-right:none;}
+    tr:last-child td{border-bottom:none;}
+    tbody tr:nth-child(even){background:#fafffe;}
+    .right{text-align:right;}.center{text-align:center;}
+    table thead tr th:nth-child(2){width:17% !important;text-align:center;}
+    table thead tr th:nth-child(10){width:26% !important;text-align:center;}
+    table tbody tr td:last-child{text-align:justify;text-justify:inter-word;}
+    .total-row td{background:var(--grey);font-weight:700;font-size:13px;border-top:2px solid var(--grey-border);}
+    .total-label-cell{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-right:12px;}
+    .img-cell{max-width:100%;max-height:110px;width:auto;height:auto;object-fit:cover;border-radius:5px;display:block;margin:0 auto;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+    .footer{display:flex;align-items:stretch;margin:6px 30px 30px;border:1px solid var(--grey-border);border-radius:10px;background:#fafafa;min-height:120px;}
+    .footer-left{flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:center;}
+    .footer-tagline{font-family:'Inter',sans-serif;font-size:17px;color:var(--green);font-weight:700;margin-bottom:14px;}
+    .footer-features{display:flex;gap:10px;}
+    .feature-item{display:flex;align-items:center;gap:9px;flex:1;}
+    .feature-icon{width:32px;height:32px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .feature-text{font-size:9.5px;font-weight:700;color:var(--charcoal);line-height:1.4;text-transform:uppercase;letter-spacing:0.2px;}
+    .footer-right{flex:0 0 380px;background:var(--green);border-radius:10px;margin:15px 15px 15px 12px;padding:20px 22px;display:flex;align-items:center;gap:16px;overflow:hidden;}
+    .wallet-circle{width:60px;height:60px;border:2px solid rgba(255,255,255,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .footer-total-text{flex:1;min-width:0;}
+    .total-label-right{font-size:12.5px;font-weight:600;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;}
+    .total-amount{font-size:17px;font-weight:900;color:var(--gold-light);white-space:nowrap;letter-spacing:-0.3px;line-height:1.1;}
+    .total-words{font-size:10.5px;font-style:italic;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.4;white-space:normal;word-break:break-word;}
+    .download-btn-container{position:fixed;bottom:25px;right:25px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+    .download-btn{background:var(--green);color:white;border:none;padding:11px 22px;font-size:13px;border-radius:8px;cursor:pointer;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,0.2);transition:all 0.25s ease;font-family:'Inter',sans-serif;}
+    .download-btn:hover{transform:translateY(-2px);background:var(--green-dark);}
+    .download-btn.excel{background:#1a7040;}
+    .download-btn.excel:hover{background:#155c35;}
+    @media print{.download-btn-container{display:none !important;}}
+  </style>
+</head>
+<body>
+<div class="download-btn-container">
+  <button class="download-btn" onclick="generatePDF('landscape')">⬇ TẢI PDF (NGANG)</button>
+  <button class="download-btn excel" onclick="exportExcel()">⬇ TẢI EXCEL (.XLSX)</button>
+</div>
+
+<div class="page" id="invoice">
+  <div class="header">
+    <div class="logo-wrap">
+      <? if(company.logo && company.logo.indexOf('data:image')===0){ ?>
+        <img src="<?!= company.logo ?>">
+      <? }else{ ?><div style="color:#999;font-size:12px;">[Logo]</div><? } ?>
+    </div>
+    <div class="company-info">
+      <div class="company-name"><?= company.name ?></div>
+      <div class="info-line" style="margin-top:3px;"><?= company.address ?></div>
+      <div class="info-line" style="margin-top:2px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.02 1.18 2 2 0 012 0h3a2 2 0 012 1.72 12.05 12.05 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.05 12.05 0 002.81.7A2 2 0 0122 14.92z"/></svg>
+        <?= company.hotline ?>
+        <span class="divider-line">|</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        <?= company.website ?>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-header">
+    <div class="project-name">CÔNG TRÌNH: <?= quote.project ?></div>
+    <div class="project-address">Địa chỉ: <?= quote.address ?></div>
+  </div>
+
+  <div class="content-area">
+    <? for(var sec in sections){ ?>
+    <div style="margin-bottom:18px;">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11a2 2 0 012-2h16a2 2 0 012 2v5H2v-5z"/><path d="M6 20v-3M18 20v-3"/></svg>
+        </div>
+        <div class="section-title"><?= sec ?></div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr>
+            <th style="width:<?= widths[0] ?>">STT</th>
+            <th style="width:<?= widths[1] ?>">Hạng mục</th>
+            <th style="width:<?= widths[2] ?>">Kích thước</th>
+            <th style="width:<?= widths[3] ?>">ĐVT</th>
+            <th style="width:<?= widths[4] ?>">KL</th>
+            <th style="width:<?= widths[5] ?>">SL</th>
+            <th style="width:<?= widths[6] ?>">Đơn giá</th>
+            <th style="width:<?= widths[7] ?>">Thành tiền</th>
+            <th style="width:<?= widths[8] ?>">Hình ảnh</th>
+            <th style="width:<?= widths[9] ?>">Ghi chú</th>
+          </tr></thead>
+          <tbody>
+            <? var secTotal=0;var rowNum=0; ?>
+            <? for(var i=0;i<sections[sec].length;i++){
+                 var r=sections[sec][i];
+                 var _d=(r.description||'').toString().replace(/\s/g,'');
+                 if(_d!==''){rowNum++;secTotal+=Number(r.amount)||0; ?>
+            <tr>
+              <td class="center" style="color:#bbb;font-size:12px;"><?= rowNum ?></td>
+              <td style="font-weight:700;color:#1a1a1a;padding-left:10px;"><?= r.description ?></td>
+              <td class="center" style="color:var(--muted);"><?= [r.l,r.w,r.h].filter(Boolean).join(' × ') ?></td>
+              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;"><?= r.uom ?></td>
+              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;"><?= r.kl ?></td>
+              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;"><?= r.qty ?></td>
+              <td class="right" style="white-space:nowrap;letter-spacing:-0.3px;"><?= Number(r.price||0).toLocaleString('vi-VN') ?></td>
+              <td class="right" style="font-weight:700;white-space:nowrap;letter-spacing:-0.3px;"><?= Number(r.amount||0).toLocaleString('vi-VN') ?></td>
+              <td class="center">
+                <? if(r.img&&r.img.indexOf('data:image')===0){ ?><img src="<?!= r.img ?>" class="img-cell"><? } ?>
+              </td>
+              <td style="font-size:12px;line-height:1.6;color:var(--muted);padding-left:8px;"><?!= (typeof r.note==='string'?r.note.replace(/\n/g,'<br>'):'')?></td>
+            </tr>
+            <? }} ?>
+            <tr class="total-row">
+              <td colspan="7">
+                <div class="total-label-cell">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#1a5c38"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20C19 20 22 3 22 3c-1 2-8 2-8 2s4-1 5 4c-3.52-1-6-1-8.33 3.21C8.4 12 8 12.5 8 14H6C6 8 8 5 8 5s-6 3-6 9c0 3 1.5 5 3.82 6.34A12.25 12.25 0 0117 8z"/></svg>
+                  TỔNG CỘNG <?= sec ?>:
+                </div>
+              </td>
+              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);"><?= secTotal.toLocaleString('vi-VN') ?></td>
+              <td colspan="2"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <? } ?>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">
+      <div class="footer-tagline">Cảm ơn Quý khách đã tin tưởng lựa chọn Tuấn Phát!</div>
+      <div style="font-size: 10.5px; color: var(--charcoal); margin-bottom: 14px; margin-top: -5px; padding-right: 20px; line-height: 1.4;">
+        * Báo giá chưa bao gồm phụ kiện rời, đồ gia dụng, đồ trang trí. Báo giá có giá trị trong 10 ngày.
+      </div>
+      <div class="footer-features">
+        <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></div><div class="feature-text">Bao gồm vận chuyển<br>và lắp đặt</div></div>
+        <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="feature-text">Bảo hành 02 năm<br>lỗi kỹ thuật</div></div>
+        <div class="feature-item"><div class="feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><polyline points="9 14 11 16 15 12"></polyline></svg></div><div class="feature-text">Nghiệm thu theo<br>khối lượng thực tế</div></div>
+      </div>
+    </div>
+    <div class="footer-right">
+      <div class="wallet-circle"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a2 2 0 000 4h4v-4z"/></svg></div>
+      <div class="footer-total-text">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng nội thất:</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= Number(quote.total).toLocaleString('vi-VN') ?> đ</div>
+        </div>
+        <? if(quote.discountRate > 0 || quote.discountAmount > 0) { ?>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Chiết khấu <?= quote.discountRate||0 ?>%:</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);">-<?= Number(quote.discountAmount||0).toLocaleString('vi-VN') ?> đ</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.2);">
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng tiền:</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= (Number(quote.total) - Number(quote.discountAmount||0)).toLocaleString('vi-VN') ?> đ</div>
+        </div>
+        <? } ?>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.2);">
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">VAT <?= quote.vatRate||0 ?>%:</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= Number(quote.vatAmount||0).toLocaleString('vi-VN') ?> đ</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;">
+          <div class="total-label-right" style="margin-bottom:0;font-size:13px;font-weight:800;">Tổng tiền có VAT:</div>
+          <div class="total-amount" style="font-size:17px;"><?= (Number(quote.total) - Number(quote.discountAmount||0) + Number(quote.vatAmount||0)).toLocaleString('vi-VN') ?> đ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var exportCompany={
+  name: <?!= JSON.stringify(company.name||'') ?>,
+  address: <?!= JSON.stringify(company.address||'') ?>,
+  hotline: <?!= JSON.stringify(company.hotline||'') ?>,
+  website: <?!= JSON.stringify(company.website||'') ?>,
+  logo: <?!= JSON.stringify(company.logo||'') ?>
+};
+var exportQuote={
+  project: <?!= JSON.stringify(quote.project||'') ?>,
+  address: <?!= JSON.stringify(quote.address||'') ?>,
+  quoteName: <?!= JSON.stringify(quote.quoteName||'') ?>,
+  total: <?= Number(quote.total)||0 ?>,
+  vatRate: <?= Number(quote.vatRate)||0 ?>,
+  vatAmount: <?= Number(quote.vatAmount)||0 ?>,
+  discountRate: <?= Number(quote.discountRate)||0 ?>,
+  discountAmount: <?= Number(quote.discountAmount)||0 ?>
+};
+var exportSections={};
+<? for(var sec in sections){ ?>
+exportSections[<?!= JSON.stringify(sec) ?>]=[
+  <? for(var ei=0;ei<sections[sec].length;ei++){var er=sections[sec][ei];var _ed=(er.description||'').toString().replace(/\s/g,'');if(_ed!==''){?>
+  {
+    description: <?!= JSON.stringify(er.description||'') ?>,
+    l: <?!= JSON.stringify(String(er.l||'')) ?>,
+    w: <?!= JSON.stringify(String(er.w||'')) ?>,
+    h: <?!= JSON.stringify(String(er.h||'')) ?>,
+    uom: <?!= JSON.stringify(er.uom||'') ?>,
+    kl: <?!= JSON.stringify(String(er.kl||'')) ?>,
+    qty: <?!= JSON.stringify(String(er.qty||'')) ?>,
+    price: <?= Number(er.price)||0 ?>,
+    amount: <?= Number(er.amount)||0 ?>,
+    note: <?!= JSON.stringify((er.note||'').replace(/<br>/g,'\n')) ?>
+  },
+  <? }}?>
+];
+<? } ?>
+</script>
+
+<script>
+/* ===== TẢI PDF ===== */
+async function generatePDF(orientation){
+  const elem=document.getElementById('invoice');
+  const btns=document.querySelectorAll('.download-btn');
+  btns.forEach(b=>{b.disabled=true;b.style.opacity='0.5';});
+  btns[0].innerText="ĐANG TẠO PDF...";
+  try{
+    await document.fonts.ready;
+    window.scrollTo(0,0);
+    await new Promise(r=>setTimeout(r,500));
+    const scale=2;
+    const eTop=elem.getBoundingClientRect().top;
+    const cy=node=>{
+      const r=node.getBoundingClientRect();
+      return{top:Math.round((r.top-eTop)*scale),bot:Math.round((r.bottom-eTop)*scale)};
+    };
+    const blocks=[];
+    elem.querySelectorAll('tbody tr,thead tr').forEach(node=>{
+      const r=node.getBoundingClientRect();
+      if(r.height<12)return;
+      blocks.push(cy(node));
+    });
+    ['.header','.project-header','.footer'].forEach(sel=>{
+      elem.querySelectorAll(sel).forEach(node=>blocks.push(cy(node)));
+    });
+    elem.querySelectorAll('.section-header').forEach(node=>{
+      let b=cy(node);
+      let nxt=node.nextElementSibling;
+      if(nxt&&nxt.classList.contains('table-wrapper')){
+        let tr=nxt.querySelector('tbody tr');
+        let th=nxt.querySelector('thead');
+        if(tr) b.bot=cy(tr).bot;
+        else if(th) b.bot=cy(th).bot;
+      }
+      blocks.push(b);
+    });
+    blocks.sort((a,b)=>a.top-b.top);
+    const canvas=await html2canvas(elem,{
+      scale,useCORS:true,logging:false,
+      backgroundColor:'#ffffff',
+      scrollX:0,scrollY:0
+    });
+    const{jsPDF}=window.jspdf;
+    const pdfW   =orientation==='landscape'?297:210;
+    const pdfH_A4=orientation==='landscape'?210:297;
+    const topMm  =12;
+    const pxPerMm=canvas.width/pdfW;
+    const pageH  =pdfH_A4*pxPerMm;
+    const topPx  =Math.round(topMm*pxPerMm);
+    const BORDER =2;
+    const pdf=new jsPDF({orientation,unit:'mm',format:'a4'});
+    let pageStart=0,pageNum=0;
+    while(pageStart<canvas.height){
+      const availH=pageNum===0?pageH:(pageH-topPx);
+      let   pageEnd=Math.min(pageStart+availH,canvas.height);
+      for(const b of blocks){
+        if(b.top>=pageEnd)break;
+        if(b.top<pageEnd&&b.bot>pageEnd){
+          if(b.top>pageStart)pageEnd=b.top;
+          break;
+        }
+      }
+      const sliceH=pageEnd-pageStart;
+      if(sliceH<=0){pageStart++;continue;}
+      if(pageNum>0)pdf.addPage('a4',orientation);
+      const pad =pageNum>0?topPx:0;
+      const ovlp=pageNum>0?BORDER:0;
+      const srcY=Math.max(0,pageStart-ovlp);
+      const srcH=pageEnd-srcY;
+      const pc=document.createElement('canvas');
+      pc.width=canvas.width;
+      pc.height=srcH+pad;
+      const ctx=pc.getContext('2d');
+      ctx.fillStyle='#ffffff';
+      ctx.fillRect(0,0,pc.width,pc.height);
+      ctx.drawImage(canvas,0,srcY,canvas.width,srcH,0,pad-ovlp,canvas.width,srcH);
+      ctx.fillStyle='#ffffff';
+      ctx.fillRect(0,0,pc.width,pad-ovlp);
+      pdf.addImage(pc.toDataURL('image/jpeg',0.95),'JPEG',
+                   0,0,pdfW,(pc.height/canvas.width)*pdfW,undefined,'FAST');
+      pageStart=pageEnd;
+      pageNum++;
+    }
+    pdf.save('Bao_Gia_TuanPhat.pdf');
+  }catch(err){alert("Lỗi: "+err.message);}
+  btns.forEach(b=>{b.disabled=false;b.style.opacity='1';});
+  btns[0].innerText="⬇ TẢI PDF (NGANG)";
+}
+
+/* ===== TẢI EXCEL ===== */
+async function exportExcel(){
+  const btns=document.querySelectorAll('.download-btn');
+  btns.forEach(b=>{b.disabled=true;b.style.opacity='0.5';});
+  btns[1].innerText="ĐANG TẠO EXCEL...";
+  try{
+    const wb=new ExcelJS.Workbook();wb.creator='TuanPhat';
+    const ws=wb.addWorksheet('Báo Giá',{views:[{showGridLines:false}]});
+    ws.columns=[{width:5},{width:32},{width:16},{width:7},{width:6},{width:6},{width:14},{width:14},{width:38}];
+    var R=1,GREEN='FF1a5c38',WHITE='FFFFFFFF',GREY='FFf5f5f5',GOLD='FFe8d170';
+    var bT={top:{style:'thin',color:{argb:'FFdddddd'}},left:{style:'thin',color:{argb:'FFdddddd'}},bottom:{style:'thin',color:{argb:'FFdddddd'}},right:{style:'thin',color:{argb:'FFdddddd'}}};
+
+    if (exportCompany.logo && exportCompany.logo.startsWith('data:image')) {
+      try {
+        var base64Data = exportCompany.logo.split(',')[1];
+        var imageId = wb.addImage({ base64: base64Data, extension: 'png' });
+        ws.addImage(imageId, {
+          tl: { col: 0.2, row: 0.2 },
+          ext: { width: 160, height: 80 }
+        });
+      } catch (e) { console.log('Lỗi logo Excel:', e); }
+    }
+
+    function mRow(span,val,opts){
+      ws.mergeCells('A'+R+':'+span+R);
+      var c=ws.getCell('A'+R);c.value=val;
+      if(opts){if(opts.font)c.font=opts.font;if(opts.align)c.alignment={horizontal:opts.align,vertical:'middle'};if(opts.fill)c.fill=opts.fill;if(opts.border)c.border=opts.border;}
+      if(opts&&opts.h)ws.getRow(R).height=opts.h;
+      R++;
+    }
+    mRow('I',exportCompany.name,{font:{bold:true,size:14,color:{argb:GREEN}},align:'center',h:22});
+    mRow('I',exportCompany.address,{font:{size:11},align:'center'});
+    mRow('I','Hotline/ Zalo: '+exportCompany.hotline+'   |   '+exportCompany.website,{font:{size:11,color:{argb:'FF666666'}},align:'center'});
+    ws.mergeCells('A'+R+':I'+R);ws.getCell('A'+R).border={bottom:{style:'medium',color:{argb:GREEN}}};ws.getRow(R).height=8;R++;
+    mRow('I','CÔNG TRÌNH: '+exportQuote.project,{font:{bold:true,size:13,color:{argb:GREEN}},align:'center',h:22});
+    mRow('I','Địa chỉ: '+exportQuote.address,{font:{bold:true,size:13,color:{argb:'FF666666'}},align:'center'});
+    ws.getRow(R).height=10;R++;
+
+    var grandTotal=0;
+    for(var secName in exportSections){
+      ws.mergeCells('A'+R+':I'+R);var ch=ws.getCell('A'+R);ch.value=secName;ch.font={bold:true,size:12,color:{argb:WHITE}};ch.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};ch.alignment={horizontal:'left',vertical:'middle',indent:1};ws.getRow(R).height=26;R++;
+      var hRow=ws.getRow(R);hRow.values=['STT','HẠNG MỤC','KÍCH THƯỚC (MM)','ĐVT','KL','SL','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ'];
+      hRow.eachCell(function(cell){cell.font={bold:true,color:{argb:WHITE},size:10};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2d7a50'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=bT;});ws.getRow(R).height=28;R++;
+      var items=exportSections[secName],secTotal=0;
+      for(var j=0;j<items.length;j++){
+        var r2=items[j],amt=Number(r2.amount)||0;secTotal+=amt;grandTotal+=amt;
+        var klVal = (r2.kl && !isNaN(r2.kl)) ? Number(r2.kl) : r2.kl;
+        var qtyVal = (r2.qty && !isNaN(r2.qty)) ? Number(r2.qty) : r2.qty;
+
+        var dRow=ws.getRow(R);dRow.values=[j+1,r2.description,[r2.l,r2.w,r2.h].filter(Boolean).join(' × '),r2.uom,klVal,qtyVal,Number(r2.price)||0,amt,r2.note||''];
+        
+        dRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};
+        dRow.getCell(2).font={bold:true};dRow.getCell(2).alignment={vertical:'middle',wrapText:true};
+        
+        dRow.getCell(3).alignment={horizontal:'center',vertical:'middle',wrapText:true};
+        dRow.getCell(4).alignment={horizontal:'center',vertical:'middle'};
+        dRow.getCell(5).alignment={horizontal:'center',vertical:'middle'};
+        dRow.getCell(6).alignment={horizontal:'center',vertical:'middle'};
+
+        dRow.getCell(7).numFmt='#,##0';dRow.getCell(7).alignment={horizontal:'right',vertical:'middle'};
+        dRow.getCell(8).numFmt='#,##0';dRow.getCell(8).font={bold:true};dRow.getCell(8).alignment={horizontal:'right',vertical:'middle'};
+        dRow.getCell(9).alignment={vertical:'middle',wrapText:true,horizontal:'justify'};
+        dRow.eachCell(function(cell){cell.border=bT;});ws.getRow(R).height=44;R++;
+      }
+      ws.mergeCells('A'+R+':G'+R);var stL=ws.getCell('A'+R);stL.value='TỔNG CỘNG '+secName+':';stL.font={bold:true,size:11};stL.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stL.alignment={horizontal:'right',vertical:'middle'};
+      var stV=ws.getCell('H'+R);stV.value=secTotal;stV.numFmt='#,##0';stV.font={bold:true,size:12,color:{argb:GREEN}};stV.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stV.alignment={horizontal:'right',vertical:'middle'};
+      ws.getCell('I'+R).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};ws.getRow(R).height=24;R++;
+      ws.getRow(R).height=8;R++;
+    }
+    ws.getRow(R).height=6;R++;
+    
+    ws.mergeCells('A'+R+':G'+R);var gtL1=ws.getCell('A'+R);gtL1.value='Tổng nội thất:';gtL1.font={bold:true,size:11,color:{argb:'FF444444'}};gtL1.alignment={horizontal:'right',vertical:'middle'};
+    var gtV1=ws.getCell('H'+R);gtV1.value=grandTotal;gtV1.numFmt='#,##0';gtV1.font={bold:true,size:12,color:{argb:'FF444444'}};gtV1.alignment={horizontal:'right',vertical:'middle'};
+    ws.getRow(R).height=20;R++;
+
+    if (exportQuote.discountRate > 0 || exportQuote.discountAmount > 0) {
+      ws.mergeCells('A'+R+':G'+R);var gtL2=ws.getCell('A'+R);gtL2.value='Chiết khấu ' + (exportQuote.discountRate||0) + '%:';gtL2.font={bold:true,size:11,color:{argb:'FF444444'}};gtL2.alignment={horizontal:'right',vertical:'middle'};
+      var gtV2=ws.getCell('H'+R);gtV2.value= -1 * (exportQuote.discountAmount||0);gtV2.numFmt='#,##0';gtV2.font={bold:true,size:12,color:{argb:'FF444444'}};gtV2.alignment={horizontal:'right',vertical:'middle'};
+      ws.getRow(R).height=20;R++;
+
+      ws.mergeCells('A'+R+':G'+R);var gtL3=ws.getCell('A'+R);gtL3.value='Tổng tiền:';gtL3.font={bold:true,size:11,color:{argb:'FF444444'}};gtL3.alignment={horizontal:'right',vertical:'middle'};
+      var gtV3=ws.getCell('H'+R);gtV3.value=grandTotal - (exportQuote.discountAmount||0);gtV3.numFmt='#,##0';gtV3.font={bold:true,size:12,color:{argb:'FF444444'}};gtV3.alignment={horizontal:'right',vertical:'middle'};
+      ws.getRow(R).height=20;R++;
+    }
+    
+    ws.mergeCells('A'+R+':G'+R);var gtL4=ws.getCell('A'+R);gtL4.value='VAT ' + (exportQuote.vatRate||0) + '%:';gtL4.font={bold:true,size:11,color:{argb:'FF444444'}};gtL4.alignment={horizontal:'right',vertical:'middle'};
+    var gtV4=ws.getCell('H'+R);gtV4.value=exportQuote.vatAmount||0;gtV4.numFmt='#,##0';gtV4.font={bold:true,size:12,color:{argb:'FF444444'}};gtV4.alignment={horizontal:'right',vertical:'middle'};
+    ws.getRow(R).height=20;R++;
+    
+    ws.mergeCells('A'+R+':G'+R);var gtL5=ws.getCell('A'+R);gtL5.value='TỔNG TIỀN CÓ VAT:';gtL5.font={bold:true,size:13,color:{argb:WHITE}};gtL5.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};gtL5.alignment={horizontal:'right',vertical:'middle',indent:1};
+    var gtV5=ws.getCell('H'+R);gtV5.value=grandTotal - (exportQuote.discountAmount||0) + (exportQuote.vatAmount||0);gtV5.numFmt='#,##0';gtV5.font={bold:true,size:15,color:{argb:GOLD}};gtV5.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};gtV5.alignment={horizontal:'right',vertical:'middle'};
+    ws.getCell('I'+R).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};ws.getRow(R).height=34;R++;
+    
+    ws.getRow(R).height=8;R++;
+    ws.mergeCells('A'+R+':I'+R);ws.getCell('A'+R).value='Ghi chú: Khối lượng nghiệm thu theo thực tế công trình.';ws.getCell('A'+R).font={italic:true,size:10,color:{argb:'FF666666'}};ws.getCell('A'+R).alignment={horizontal:'left'};ws.getRow(R).height=18;
+
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Bao_Gia_TuanPhat.xlsx';a.click();URL.revokeObjectURL(url);
+  }catch(err){alert("Lỗi Excel: "+err.message);}
+  btns.forEach(b=>{b.disabled=false;b.style.opacity='1';});btns[1].innerText="⬇ TẢI EXCEL (.XLSX)";
+}
+</script>
+</body>
+</html>
