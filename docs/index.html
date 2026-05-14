@@ -4,33 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>In Báo Giá - Tuấn Phát</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #f4f6f8;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
+        body { margin: 0; padding: 0; background: #eef0f3; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .loader-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        .loader-icon { width: 50px; height: 50px; border: 4px solid #e8f2ec; border-top: 4px solid #1a5c38; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-text { color: #1a5c38; font-weight: 700; font-size: 16px; }
+        .error-text { color: #E21F25; font-weight: 700; font-size: 16px; }
     </style>
 </head>
 <body>
-    <iframe id="appFrame" src="about:blank"></iframe>
+    <div id="loader" class="loader-card">
+        <div class="loader-icon"></div>
+        <div class="loader-text">Đang tải dữ liệu báo giá...</div>
+    </div>
+    
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbwM0RJimYcyl2eLTfNdaRZf2gU6pSUcqMub9Sp-cAcQW0g16HkPEpdxb3ovLE8z9tgj/exec";
+        const id = urlParams.get('id') || '';
         
-        const paramsString = urlParams.toString();
-        const finalUrl = paramsString ? scriptUrl + "?" + paramsString : scriptUrl;
-        
-        document.getElementById('appFrame').src = finalUrl;
+        if (!id) {
+            document.getElementById('loader').innerHTML = "<div class='error-text'>LỖI: Vui lòng cung cấp tham số ?id= (Ví dụ: ?id=702125dc)</div>";
+        } else {
+            // Lấy dữ liệu HTML thô từ Apps Script API
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbwM0RJimYcyl2eLTfNdaRZf2gU6pSUcqMub9Sp-cAcQW0g16HkPEpdxb3ovLE8z9tgj/exec?api=html&id=" + id;
+            
+            fetch(scriptUrl)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.html) {
+                        let finalHtml = data.html;
+                        
+                        // Chèn script thay logo cục bộ giống như HiepLuc
+                        const injectScript = `
+                            <script>
+                                setTimeout(() => {
+                                    const logoImg = document.querySelector('.logo-wrap img');
+                                    if (logoImg) {
+                                        logoImg.src = 'LOGO TUẤN PHÁT-02.png';
+                                    } else {
+                                        const wrap = document.querySelector('.logo-wrap');
+                                        if (wrap) {
+                                            wrap.innerHTML = '<img src="LOGO TUẤN PHÁT-02.png" style="height:78px;width:auto;object-fit:contain;">';
+                                        }
+                                    }
+                                }, 100);
+                            <\/script>
+                        `;
+                        finalHtml = finalHtml.replace('</body>', injectScript + '</body>');
+                        
+                        document.open();
+                        document.write(finalHtml);
+                        document.close();
+                    } else {
+                        document.getElementById('loader').innerHTML = "<div class='error-text'>Lỗi tải dữ liệu. Báo giá không tồn tại.</div>";
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('loader').innerHTML = "<div class='error-text'>Lỗi kết nối đến máy chủ.</div>";
+                });
+        }
     </script>
 </body>
 </html>
