@@ -131,19 +131,6 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 
-  if (e.parameter.api === 'json') {
-    var callback = e.parameter.callback;
-    var resultObj = { company: company, quote: quote, sections: sections, widths: widths };
-    var result = JSON.stringify(resultObj);
-    if (callback) {
-      return ContentService.createTextOutput(callback + "(" + result + ")")
-        .setMimeType(ContentService.MimeType.JAVASCRIPT);
-    } else {
-      return ContentService.createTextOutput(result)
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-  }
-
   if (e.parameter.api === 'html') {
     var callback = e.parameter.callback;
     var result = JSON.stringify({ html: htmlOutput.getContent() });
