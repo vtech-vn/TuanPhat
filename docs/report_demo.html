@@ -71,87 +71,95 @@
 <div class="page" id="invoice">
   <div class="header">
     <div class="logo-wrap">
-      <? if(company.logo && company.logo.indexOf('data:image')===0){ ?>
-        <img src="<?!= company.logo ?>">
-      <? }else{ ?><div style="color:#999;font-size:12px;">[Logo]</div><? } ?>
+      <img src="https://vtech-vn.github.io/TuanPhat/docs/LOGO%20TU%E1%BA%A4N%20PHAT-02.png">
     </div>
     <div class="company-info">
-      <div class="company-name"><?= company.name ?></div>
-      <div class="info-line" style="margin-top:3px;"><?= company.address ?></div>
+      <div class="company-name">CÔNG TY TNHH KIẾN TRÚC & NỘI THẤT TUẤN PHÁT</div>
+      <div class="info-line" style="margin-top:3px;">Số 10, Đường số 2, Khu dân cư Cityland Park Hills, P.10, Q.Gò Vấp, TP.HCM</div>
       <div class="info-line" style="margin-top:2px;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.02 1.18 2 2 0 012 0h3a2 2 0 012 1.72 12.05 12.05 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.05 12.05 0 002.81.7A2 2 0 0122 14.92z"/></svg>
-        <?= company.hotline ?>
+        0909.123.456
         <span class="divider-line">|</span>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-        <?= company.website ?>
+        noithattuanphat.com
       </div>
     </div>
   </div>
 
   <div class="project-header">
-    <div class="project-name">CÔNG TRÌNH: <?= quote.project ?></div>
-    <div class="project-address">Địa chỉ: <?= quote.address ?></div>
+    <div class="project-name">CÔNG TRÌNH: CĂN HỘ CAO CẤP VINHOMES</div>
+    <div class="project-address">Địa chỉ: Quận Bình Thạnh, TP.HCM</div>
   </div>
 
   <div class="content-area">
-    <? for(var sec in sections){ ?>
+    
     <div style="margin-bottom:18px;">
       <div class="section-header">
         <div class="section-icon">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11a2 2 0 012-2h16a2 2 0 012 2v5H2v-5z"/><path d="M6 20v-3M18 20v-3"/></svg>
         </div>
-        <div class="section-title"><?= sec ?></div>
+        <div class="section-title">PHÒNG KHÁCH</div>
       </div>
       <div class="table-wrapper">
         <table>
           <thead><tr>
-            <th style="width:<?= widths[0] ?>">STT</th>
-            <th style="width:<?= widths[1] ?>">Hạng mục</th>
-            <th style="width:<?= widths[2] ?>">Kích thước</th>
-            <th style="width:<?= widths[3] ?>">ĐVT</th>
-            <th style="width:<?= widths[4] ?>">KL</th>
-            <th style="width:<?= widths[5] ?>">SL</th>
-            <th style="width:<?= widths[6] ?>">Đơn giá</th>
-            <th style="width:<?= widths[7] ?>">Thành tiền</th>
-            <th style="width:<?= widths[8] ?>">Hình ảnh</th>
-            <th style="width:<?= widths[9] ?>">Ghi chú</th>
+            <th style="width:5%">STT</th>
+            <th style="width:25%">Hạng mục</th>
+            <th style="width:15%">Kích thước</th>
+            <th style="width:5%">ĐVT</th>
+            <th style="width:5%">KL</th>
+            <th style="width:5%">SL</th>
+            <th style="width:10%">Đơn giá</th>
+            <th style="width:10%">Thành tiền</th>
+            <th style="width:10%">Hình ảnh</th>
+            <th style="width:10%">Ghi chú</th>
           </tr></thead>
           <tbody>
-            <? var secTotal=0;var rowNum=0; ?>
-            <? for(var i=0;i<sections[sec].length;i++){
-                 var r=sections[sec][i];
-                 var _d=(r.description||'').toString().replace(/\s/g,'');
-                 if(_d!==''){rowNum++;secTotal+=Number(r.amount)||0; ?>
             <tr>
-              <td class="center" style="color:#bbb;font-size:12px;"><?= rowNum ?></td>
-              <td style="font-weight:700;color:#1a1a1a;padding-left:10px;"><?= r.description ?></td>
-              <td class="center" style="color:var(--muted);"><?= [r.l,r.w,r.h].filter(Boolean).join(' × ') ?></td>
-              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;"><?= r.uom ?></td>
-              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;"><?= r.kl ?></td>
-              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;"><?= r.qty ?></td>
-              <td class="right" style="white-space:nowrap;letter-spacing:-0.3px;"><?= Number(r.price||0).toLocaleString('vi-VN') ?></td>
-              <td class="right" style="font-weight:700;white-space:nowrap;letter-spacing:-0.3px;"><?= Number(r.amount||0).toLocaleString('vi-VN') ?></td>
-              <td class="center">
-                <? if(r.img&&r.img.indexOf('data:image')===0){ ?><img src="<?!= r.img ?>" class="img-cell"><? } ?>
-              </td>
-              <td style="font-size:12px;line-height:1.6;color:var(--muted);padding-left:8px;"><?!= (typeof r.note==='string'?r.note.replace(/\n/g,'<br>'):'')?></td>
+              <td class="center" style="color:#bbb;font-size:12px;">1</td>
+              <td style="font-weight:700;color:#1a1a1a;padding-left:10px;">Sofa da phòng khách</td>
+              <td class="center" style="color:var(--muted);">2000 × 800 × 900</td>
+              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;">Cái</td>
+              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;">1</td>
+              <td class="center" style="white-space:nowrap;letter-spacing:-0.3px;">1</td>
+              <td class="right" style="white-space:nowrap;letter-spacing:-0.3px;">15.000.000</td>
+              <td class="right" style="font-weight:700;white-space:nowrap;letter-spacing:-0.3px;">15.000.000</td>
+              <td class="center"></td>
+              <td style="font-size:12px;line-height:1.6;color:var(--muted);padding-left:8px;">Da bò thật nhập khẩu</td>
             </tr>
-            <? }} ?>
             <tr class="total-row">
               <td colspan="7">
                 <div class="total-label-cell">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#1a5c38"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20C19 20 22 3 22 3c-1 2-8 2-8 2s4-1 5 4c-3.52-1-6-1-8.33 3.21C8.4 12 8 12.5 8 14H6C6 8 8 5 8 5s-6 3-6 9c0 3 1.5 5 3.82 6.34A12.25 12.25 0 0117 8z"/></svg>
-                  TỔNG CỘNG <?= sec ?>:
+                  TỔNG CỘNG PHÒNG KHÁCH:
                 </div>
               </td>
-              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);"><?= secTotal.toLocaleString('vi-VN') ?></td>
+              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);">15.000.000</td>
               <td colspan="2"></td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
-    <? } ?>
+
+              </td>
+              <td style="font-size:12px;line-height:1.6;color:var(--muted);padding-left:8px;"></td>
+            </tr>
+            
+            <tr class="total-row">
+              <td colspan="7">
+                <div class="total-label-cell">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#1a5c38"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20C19 20 22 3 22 3c-1 2-8 2-8 2s4-1 5 4c-3.52-1-6-1-8.33 3.21C8.4 12 8 12.5 8 14H6C6 8 8 5 8 5s-6 3-6 9c0 3 1.5 5 3.82 6.34A12.25 12.25 0 0117 8z"/></svg>
+                  TỔNG CỘNG :
+                </div>
+              </td>
+              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);"></td>
+              <td colspan="2"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
   </div>
 
   <div class="footer">
@@ -171,25 +179,25 @@
       <div class="footer-total-text">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
           <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng nội thất:</div>
-          <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= Number(quote.total).toLocaleString('vi-VN') ?> đ</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);">150.000.000 đ</div>
         </div>
-        <? if(quote.discountRate > 0 || quote.discountAmount > 0) { ?>
+        
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Chiết khấu <?= quote.discountRate||0 ?>%:</div>
-          <div style="font-weight:700;color:rgba(255,255,255,0.9);">-<?= Number(quote.discountAmount||0).toLocaleString('vi-VN') ?> đ</div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Chiết khấu 5%:</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);">-7.500.000 đ</div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.2);">
           <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng tiền:</div>
-          <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= (Number(quote.total) - Number(quote.discountAmount||0)).toLocaleString('vi-VN') ?> đ</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);">142.500.000 đ</div>
         </div>
-        <? } ?>
+        
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.2);">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">VAT <?= quote.vatRate||0 ?>%:</div>
-          <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= Number(quote.vatAmount||0).toLocaleString('vi-VN') ?> đ</div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">VAT 8%:</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);">11.400.000 đ</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <div class="total-label-right" style="margin-bottom:0;font-size:13px;font-weight:800;">Tổng tiền có VAT:</div>
-          <div class="total-amount" style="font-size:17px;"><?= (Number(quote.total) - Number(quote.discountAmount||0) + Number(quote.vatAmount||0)).toLocaleString('vi-VN') ?> đ</div>
+          <div class="total-amount" style="font-size:17px;">153.900.000 đ</div>
         </div>
       </div>
     </div>
@@ -198,41 +206,41 @@
 
 <script>
 var exportCompany={
-  name: <?!= JSON.stringify(company.name||'') ?>,
-  address: <?!= JSON.stringify(company.address||'') ?>,
-  hotline: <?!= JSON.stringify(company.hotline||'') ?>,
-  website: <?!= JSON.stringify(company.website||'') ?>,
-  logo: <?!= JSON.stringify(company.logo||'') ?>
+  name: ,
+  address: ,
+  hotline: ,
+  website: ,
+  logo: 
 };
 var exportQuote={
-  project: <?!= JSON.stringify(quote.project||'') ?>,
-  address: <?!= JSON.stringify(quote.address||'') ?>,
-  quoteName: <?!= JSON.stringify(quote.quoteName||'') ?>,
-  total: <?= Number(quote.total)||0 ?>,
-  vatRate: <?= Number(quote.vatRate)||0 ?>,
-  vatAmount: <?= Number(quote.vatAmount)||0 ?>,
-  discountRate: <?= Number(quote.discountRate)||0 ?>,
-  discountAmount: <?= Number(quote.discountAmount)||0 ?>
+  project: ,
+  address: ,
+  quoteName: ,
+  total: ,
+  vatRate: ,
+  vatAmount: ,
+  discountRate: ,
+  discountAmount: 
 };
 var exportSections={};
-<? for(var sec in sections){ ?>
-exportSections[<?!= JSON.stringify(sec) ?>]=[
-  <? for(var ei=0;ei<sections[sec].length;ei++){var er=sections[sec][ei];var _ed=(er.description||'').toString().replace(/\s/g,'');if(_ed!==''){?>
+
+exportSections[]=[
+  
   {
-    description: <?!= JSON.stringify(er.description||'') ?>,
-    l: <?!= JSON.stringify(String(er.l||'')) ?>,
-    w: <?!= JSON.stringify(String(er.w||'')) ?>,
-    h: <?!= JSON.stringify(String(er.h||'')) ?>,
-    uom: <?!= JSON.stringify(er.uom||'') ?>,
-    kl: <?!= JSON.stringify(String(er.kl||'')) ?>,
-    qty: <?!= JSON.stringify(String(er.qty||'')) ?>,
-    price: <?= Number(er.price)||0 ?>,
-    amount: <?= Number(er.amount)||0 ?>,
-    note: <?!= JSON.stringify((er.note||'').replace(/<br>/g,'\n')) ?>
+    description: ,
+    l: ,
+    w: ,
+    h: ,
+    uom: ,
+    kl: ,
+    qty: ,
+    price: ,
+    amount: ,
+    note: 
   },
-  <? }}?>
+  
 ];
-<? } ?>
+
 </script>
 
 <script>
