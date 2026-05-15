@@ -126,10 +126,24 @@ function doGet(e) {
   template.sections = sections;
   template.widths = widths;
 
-  return template.evaluate()
+  var htmlOutput = template.evaluate()
     .setTitle('Báo giá ' + quote.quoteName)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+
+  if (e.parameter.api === 'html') {
+    var callback = e.parameter.callback;
+    var result = JSON.stringify({ html: htmlOutput.getContent() });
+    if (callback) {
+      return ContentService.createTextOutput(callback + "(" + result + ")")
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    } else {
+      return ContentService.createTextOutput(result)
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  
+  return htmlOutput;
 }
 
 function debugDrivePermissions() {
