@@ -3,6 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="logo.png">
   <meta name="viewport" content="width=1240, user-scalable=yes">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -200,6 +201,14 @@
 
 
 <script>
+/* ===== HELPER TÊN FILE ===== */
+function getFileName(ext) {
+  let proj = window.exportQuote && window.exportQuote.project ? window.exportQuote.project : "TuanPhat";
+  proj = proj.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  proj = proj.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, " ").trim();
+  return `BaoGia_${proj}.${ext}`;
+}
+
 /* ===== TẢI PDF ===== */
 async function generatePDF(orientation){
   const elem=document.getElementById('invoice');
@@ -283,7 +292,7 @@ async function generatePDF(orientation){
       pageStart=pageEnd;
       pageNum++;
     }
-    pdf.save('Bao_Gia_TuanPhat.pdf');
+    pdf.save(getFileName('pdf'));
   }catch(err){alert("Lỗi: "+err.message);}
   btns.forEach(b=>{b.disabled=false;b.style.opacity='1';});
   btns[0].innerText="⬇ TẢI PDF";
@@ -387,7 +396,7 @@ async function exportExcel(){
 
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Bao_Gia_TuanPhat.xlsx';a.click();URL.revokeObjectURL(url);
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=getFileName('xlsx');a.click();URL.revokeObjectURL(url);
   }catch(err){alert("Lỗi Excel: "+err.message);}
   btns.forEach(b=>{b.disabled=false;b.style.opacity='1';});btns[1].innerText="⬇ TẢI EXCEL";
 }
