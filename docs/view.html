@@ -12,14 +12,14 @@
     :root{--green:#1a5c38;--green-dark:#134a2d;--green-light:#e8f2ec;--charcoal:#2c2c2c;--grey:#f5f5f5;--grey-border:#e0e0e0;--muted:#666666;--gold-light:#e8d170;}
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Inter',-apple-system,sans-serif;background:#eef0f3;padding:20px;color:var(--charcoal);-webkit-font-smoothing:antialiased;}
-    .page{width:1200px;margin:auto;background:white;box-shadow:0 8px 40px rgba(0,0,0,0.12);}
-    .header{display:flex;justify-content:space-between;align-items:center;padding:22px 40px;border-bottom:2.5px solid var(--green);}
+    .page{width:1200px;margin:auto;background:white;box-shadow:0 8px 40px rgba(0,0,0,0.12);padding-bottom:30px;}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:12px 40px;border-bottom:2.5px solid var(--green);}
     .logo-wrap img{height:78px;width:auto;object-fit:contain;}
     .company-info{text-align:right;font-size:13px;line-height:1.8;}
     .company-name{font-size:15px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:0.3px;}
     .info-line{display:flex;align-items:center;justify-content:flex-end;gap:6px;color:var(--muted);font-size:12.5px;}
     .divider-line{margin:0 4px;}
-    .project-header{text-align:center;padding:28px 40px 22px;}
+    .project-header{text-align:center;padding:20px 40px 15px;}
     .project-name{font-size:20px;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;}
     .project-address{font-size:18px;color:var(--muted);margin-top:5px;font-weight:400;text-transform:uppercase;letter-spacing:0.5px;}
     .content-area{padding:0 30px 20px;}
@@ -41,7 +41,7 @@
     .total-row td{background:var(--grey);font-weight:700;font-size:13px;border-top:2px solid var(--grey-border);}
     .total-label-cell{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-right:12px;}
     .img-cell{max-width:100%;max-height:110px;width:auto;height:auto;object-fit:cover;border-radius:5px;display:block;margin:0 auto;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-    .footer{display:flex;align-items:stretch;margin:6px 30px 30px;border:1px solid var(--grey-border);border-radius:10px;background:#fafafa;min-height:120px;}
+    .footer{display:flex;align-items:stretch;margin:6px 30px 50px;border:1px solid var(--grey-border);border-radius:10px;background:#fafafa;min-height:120px;}
     .footer-left{flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:center;}
     .footer-tagline{font-family:'Inter',sans-serif;font-size:17px;color:var(--green);font-weight:700;margin-bottom:14px;}
     .footer-features{display:flex;gap:10px;}
@@ -73,16 +73,14 @@
   </div>
   <div v-else>
 <div class="download-btn-container">
-  <button class="download-btn" style="background-color: #E21F25 !important;" onclick="generatePDF('landscape')">⬇ TẢI PDF (NGANG)</button>
-  <button class="download-btn excel" onclick="exportExcel()">⬇ TẢI EXCEL (.XLSX)</button>
+  <button class="download-btn" style="background-color: #E21F25 !important;" onclick="generatePDF('landscape')">⬇ TẢI PDF</button>
+  <button class="download-btn excel" onclick="exportExcel()">⬇ TẢI EXCEL</button>
 </div>
 
 <div class="page" id="invoice">
   <div class="header">
     <div class="logo-wrap">
-      <template v-if="company.logo && company.logo.startsWith('data:image')">
-        <img src="{{ company.logo }}">
-      </template><template v-else><div style="color:#999;font-size:12px;">[Logo]</div></template>
+      <img src="logo.png">
     </div>
     <div class="company-info">
       <div class="company-name">{{ company.name }}</div>
@@ -288,7 +286,7 @@ async function generatePDF(orientation){
     pdf.save('Bao_Gia_TuanPhat.pdf');
   }catch(err){alert("Lỗi: "+err.message);}
   btns.forEach(b=>{b.disabled=false;b.style.opacity='1';});
-  btns[0].innerText="⬇ TẢI PDF (NGANG)";
+  btns[0].innerText="⬇ TẢI PDF";
 }
 
 /* ===== TẢI EXCEL ===== */
@@ -391,7 +389,7 @@ async function exportExcel(){
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Bao_Gia_TuanPhat.xlsx';a.click();URL.revokeObjectURL(url);
   }catch(err){alert("Lỗi Excel: "+err.message);}
-  btns.forEach(b=>{b.disabled=false;b.style.opacity='1';});btns[1].innerText="⬇ TẢI EXCEL (.XLSX)";
+  btns.forEach(b=>{b.disabled=false;b.style.opacity='1';});btns[1].innerText="⬇ TẢI EXCEL";
 }
 </script>
   </div>
