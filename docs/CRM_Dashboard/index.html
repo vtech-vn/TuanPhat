@@ -485,10 +485,9 @@ tr.opp-row.selected { background: #E8F5EC; }
   </div>
 </div>
 
-<!-- ── Top Nav ────────────────────────────────────────────── -->
 <nav class="topnav">
-  <div class="nav-logo">
-    <img src="logo.png" alt="Tuấn Phát" style="height:38px;width:auto;object-fit:contain;">
+  <div class="nav-logo" style="background:rgba(255,255,255,0.9); padding:4px 8px; border-radius:6px; display:flex; align-items:center;">
+    <img src="logo.png" alt="Tuấn Phát" style="height:32px;width:auto;object-fit:contain;">
   </div>
   <span class="nav-badge">CRM Dashboard</span>
   <div class="nav-spacer"></div>
@@ -501,12 +500,11 @@ tr.opp-row.selected { background: #E8F5EC; }
 
 <!-- ── Filter Bar ─────────────────────────────────────────── -->
 <div class="filter-bar">
-  <span class="filter-label">Ngày tạo:</span>
-  <div class="search-wrap" style="max-width:240px">
+  <span class="filter-label">Lọc:</span>
+  <div class="search-wrap" style="max-width:240px; flex:none;">
     <i class="fa-regular fa-calendar search-icon"></i>
-    <input class="search-input" id="f-daterange" type="text" placeholder="Từ ngày — Đến ngày" readonly>
+    <input class="search-input" id="f-daterange" type="text" placeholder="Khoảng ngày tạo" readonly>
   </div>
-  <span class="filter-label" style="margin-left:4px">Lọc:</span>
   <select class="filter-select" id="f-zone">
     <option value="">Tất cả khu vực</option>
   </select>
@@ -1110,7 +1108,11 @@ function renderCharts() {
 // ============================================================
 function renderTable() {
   const tbody = document.getElementById('opp-tbody');
-  document.getElementById('tbl-count').textContent = filteredOpps.length;
+  const pageSize = parseInt(document.getElementById('page-size')?.value || '20');
+  const showList = pageSize >= 9999 ? filteredOpps : filteredOpps.slice(0, pageSize);
+  document.getElementById('tbl-count').textContent =
+    pageSize >= 9999 ? filteredOpps.length
+    : `${showList.length} / ${filteredOpps.length}`;
 
   if (!filteredOpps.length) {
     tbody.innerHTML = `<tr><td colspan="10">
@@ -1121,7 +1123,7 @@ function renderTable() {
     return;
   }
 
-  tbody.innerHTML = filteredOpps.map((o, i) => `
+  tbody.innerHTML = showList.map((o, i) => `
     <tr class="opp-row" onclick="openPanel('${o.id}')">
       <td style="color:var(--tp-text-muted);font-size:12px">${i+1}</td>
       <td style="font-size:11px;font-family:monospace;color:var(--tp-text-muted)">${o.id}</td>
@@ -1220,16 +1222,17 @@ function renderRecentActivity() {
   el.innerHTML = top10.map(a => {
     const d = a.date ? new Date(a.date) : null;
     const dateStr = d ? d.toLocaleDateString('vi-VN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-    const initials = (a.by || 'NV').replace('NV', '');
+    const byText = a.byName || a.by || 'NV';
+    const initials = byText.replace(/^(NV\d+[-–]\s*)/, '').charAt(0).toUpperCase();
     return `
       <div class="activity-item">
-        <div class="activity-avatar">${esc(a.by) || 'NV'}</div>
+        <div class="activity-avatar">${esc(initials)}</div>
         <div class="activity-content">
           <div class="activity-customer">${esc(a.customerName)}</div>
           <div class="activity-desc">${esc(a.description)}</div>
           <div class="activity-meta">
             <i class="fa-regular fa-calendar"></i> ${dateStr}
-            &nbsp;·&nbsp; <i class="fa-solid fa-user"></i> ${esc(a.by)}
+            &nbsp;·&nbsp; <i class="fa-solid fa-user"></i> ${esc(byText)}
           </div>
         </div>
       </div>`;
