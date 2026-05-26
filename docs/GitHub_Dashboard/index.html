@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tuấn Phát Financial Dashboard – Tổng quan tài chính doanh nghiệp">
+    <title>Financial Dashboard – Tuấn Phát</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- jQuery + DateRangePicker -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            /* Tuấn Phát Green Palette */
+            --tp-primary:       #1E7C34;
+            --tp-primary-dark:  #155A26;
+            --tp-primary-light: #28A745;
+            --tp-primary-soft:  #E8F5EC;
+            --tp-accent:        #17A04A;
+
+            /* Neutrals */
+            --tp-bg:            #F4F7F5;
+            --tp-surface:       #FFFFFF;
+            --tp-border:        #E2EAE5;
+            --tp-text:          #1A2B20;
+            --tp-text-muted:    #6B7C72;
+            --tp-text-light:    #9BADA2;
+
+            /* Status */
+            --tp-success:       #16A34A;
+            --tp-success-bg:    #DCFCE7;
+            --tp-danger:        #DC2626;
+            --tp-danger-bg:     #FEE2E2;
+            --tp-warning:       #D97706;
+            --tp-warning-bg:    #FEF3C7;
+
+            /* Chart Colors */
+            --chart-in:         #1E7C34;
+            --chart-out:        #E05252;
+
+            --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md:  0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-lg:  0 10px 30px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+            --radius-sm:  8px;
+            --radius-md:  12px;
+            --radius-lg:  16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--tp-bg);
+            color: var(--tp-text);
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ============ LOADING ============ */
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(255,255,255,0.96);
+            z-index: 200;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(6px);
+            transition: opacity 0.3s;
+        }
+        .spinner-ring {
+            width: 52px; height: 52px;
+            border: 4px solid var(--tp-primary-soft);
+            border-top-color: var(--tp-primary);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ============ LOGIN OVERLAY ============ */
+        .login-overlay {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #f0fdf4 100%);
+            z-index: 150;
+            display: none;
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 48px 40px;
+            width: 100%; max-width: 420px;
+            text-align: center;
+            border: 1px solid var(--tp-border);
+            animation: slideUp 0.4s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .login-logo {
+            width: 72px; height: 72px;
+            object-fit: contain;
+            margin: 0 auto 20px;
+            display: block;
+            filter: drop-shadow(0 4px 8px rgba(30,124,52,0.2));
+        }
+        .login-title {
+            font-size: 22px; font-weight: 800;
+            color: var(--tp-primary-dark);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .login-subtitle {
+            color: var(--tp-text-muted);
+            font-size: 13px; margin-bottom: 32px;
+        }
+        .form-label {
+            text-align: left; display: block;
+            font-size: 11px; font-weight: 700;
+            color: var(--tp-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            border: 1.5px solid var(--tp-border);
+            border-radius: var(--radius-sm);
+            padding: 11px 14px;
+            font-size: 14px; font-family: inherit;
+            color: var(--tp-text);
+            background: white;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 16px;
+            outline: none;
+        }
+        .form-input:focus {
+            border-color: var(--tp-primary);
+            box-shadow: 0 0 0 3px rgba(30,124,52,0.12);
+        }
+        .form-input.otp-input {
+            text-align: center;
+            letter-spacing: 10px;
+            font-size: 26px; font-weight: 800;
+            color: var(--tp-primary-dark);
+        }
+        .btn-primary {
+            width: 100%;
+            background: var(--tp-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 13px;
+            font-size: 14px; font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover { background: var(--tp-primary-dark); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-link {
+            background: none; border: none;
+            color: var(--tp-text-muted); font-size: 12px;
+            cursor: pointer; padding: 8px;
+            font-family: inherit;
+            transition: color 0.2s;
+        }
+        .btn-link:hover { color: var(--tp-primary); }
+        .otp-sent-msg {
+            background: var(--tp-success-bg);
+            color: var(--tp-success);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 13px; font-weight: 500;
+            margin-bottom: 16px;
+        }
+        .login-error {
+            color: var(--tp-danger);
+            font-size: 13px; font-weight: 500;
+            margin-top: 12px;
+            display: none;
+        }
+        .otp-group { display: none; }
+
+        /* ============ HEADER ============ */
+        header {
+            background: white;
+            border-bottom: 3px solid var(--tp-primary);
+            box-shadow: var(--shadow-sm);
+            position: sticky; top: 0; z-index: 40;
+        }
+        .header-inner {
+            max-width: 1600px; margin: 0 auto;
+            padding: 14px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 20px; flex-wrap: wrap;
+        }
+        .brand {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .brand-logo {
+            width: 48px; height: 48px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: var(--tp-primary-soft);
+            padding: 4px;
+        }
+        .brand-text h1 {
+            font-size: 20px; font-weight: 900;
+            color: var(--tp-primary-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+        .brand-text p {
+            font-size: 11px; font-weight: 500;
+            color: var(--tp-primary);
+            margin-top: 2px;
+        }
+        .header-filters {
+            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+        }
+        .filter-wrap {
+            position: relative;
+        }
+        .filter-wrap i.left-icon {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--tp-primary); pointer-events: none;
+            font-size: 13px;
+        }
+        .filter-input {
+            border: 1.5px solid var(--tp-border);
+            border-radius: var(--radius-sm);
+            padding: 8px 14px 8px 34px;
+            font-size: 13px; font-family: inherit;
+            color: var(--tp-text);
+            background: white;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+            height: 38px;
+        }
+        .filter-input:focus { border-color: var(--tp-primary); }
+        .filter-select {
+            appearance: none;
+            padding-right: 30px;
+            min-width: 180px;
+        }
+        .filter-wrap .right-icon {
+            position: absolute; right: 10px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--tp-text-light); pointer-events: none;
+            font-size: 10px;
+        }
+        .user-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--tp-primary-soft);
+            border: 1px solid var(--tp-border);
+            border-radius: 20px;
+            padding: 5px 12px 5px 8px;
+            font-size: 12px; font-weight: 600;
+            color: var(--tp-primary-dark);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .user-badge:hover { background: #d4edda; }
+        .user-dot {
+            width: 28px; height: 28px;
+            background: var(--tp-primary);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 12px; font-weight: 700;
+        }
+
+        /* ============ MAIN CONTENT ============ */
+        main {
+            max-width: 1600px; margin: 0 auto;
+            padding: 28px 24px;
+        }
+
+        /* ============ SECTION TITLE ============ */
+        .section-label {
+            font-size: 11px; font-weight: 700;
+            color: var(--tp-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1; height: 1px;
+            background: var(--tp-border);
+        }
+
+        /* ============ SCORECARD CARDS ============ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr; } }
+
+        .kpi-card {
+            background: var(--tp-surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--tp-border);
+            padding: 20px;
+            position: relative; overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--card-accent, var(--tp-primary));
+        }
+        .kpi-card.profit-card {
+            background: linear-gradient(135deg, var(--tp-primary-dark) 0%, var(--tp-primary) 100%);
+            border: none; color: white;
+        }
+        .kpi-card.profit-card::before { display: none; }
+
+        .kpi-icon-wrap {
+            position: absolute; top: 18px; right: 18px;
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+        }
+        .kpi-label {
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.8px;
+            color: var(--tp-text-muted);
+            margin-bottom: 8px;
+        }
+        .profit-card .kpi-label { color: rgba(255,255,255,0.7); }
+        .kpi-value {
+            font-size: 26px; font-weight: 900;
+            color: var(--tp-text); line-height: 1.1;
+        }
+        .profit-card .kpi-value { color: white; font-size: 30px; }
+
+        .kpi-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 12px; font-weight: 600;
+            padding: 3px 8px; border-radius: 20px;
+            margin-top: 8px;
+        }
+        .badge-up   { background: var(--tp-success-bg); color: var(--tp-success); }
+        .badge-down { background: var(--tp-danger-bg);  color: var(--tp-danger); }
+        .badge-neutral { background: #f3f4f6; color: #6b7280; }
+        .profit-card .badge-up   { background: rgba(255,255,255,0.2); color: #86efac; }
+        .profit-card .badge-down { background: rgba(255,255,255,0.15); color: #fca5a5; }
+
+        .kpi-divider {
+            border-top: 1px solid var(--tp-border);
+            margin: 12px 0 10px;
+        }
+        .profit-card .kpi-divider { border-color: rgba(255,255,255,0.15); }
+        .kpi-sub {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .kpi-sub-label {
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--tp-text-muted);
+        }
+        .kpi-sub-val {
+            font-size: 13px; font-weight: 700;
+            color: var(--tp-text);
+        }
+        .profit-card .kpi-sub-label { color: rgba(255,255,255,0.6); }
+        .profit-card .kpi-sub-val   { color: rgba(255,255,255,0.9); }
+
+        /* ============ CHART CARDS ============ */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
+
+        .chart-card {
+            background: var(--tp-surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--tp-border);
+            padding: 22px;
+            transition: box-shadow 0.2s;
+        }
+        .chart-card:hover { box-shadow: var(--shadow-md); }
+
+        .chart-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--tp-border);
+        }
+        .chart-title {
+            font-size: 13px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--tp-primary-dark);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .chart-title i { color: var(--tp-primary); }
+        .chart-area {
+            position: relative; width: 100%; height: 280px;
+        }
+
+        /* ============ CASH FLOW SPECIFIC ============ */
+        .cashflow-toolbar {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .cashflow-legend {
+            display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+        }
+        .legend-dot {
+            width: 10px; height: 10px; border-radius: 2px;
+            display: inline-block;
+        }
+        .legend-label {
+            font-size: 12px; font-weight: 500;
+            color: var(--tp-text-muted);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .cashflow-summary-box {
+            background: var(--tp-primary-soft);
+            border: 1.5px solid var(--tp-primary);
+            border-radius: var(--radius-sm);
+            padding: 8px 14px;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13px;
+        }
+        .cashflow-summary-label {
+            font-weight: 600; color: var(--tp-primary-dark);
+        }
+        .cashflow-summary-value {
+            font-size: 15px; font-weight: 800;
+            color: var(--tp-primary-dark);
+        }
+        .cashflow-summary-value.negative { color: var(--tp-danger); }
+        .btn-detail {
+            background: var(--tp-primary);
+            color: white; border: none;
+            border-radius: var(--radius-sm);
+            padding: 8px 16px;
+            font-size: 12px; font-weight: 700;
+            cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; gap: 6px;
+            transition: background 0.2s;
+            text-transform: uppercase;
+        }
+        .btn-detail:hover { background: var(--tp-primary-dark); }
+        .cashflow-tip {
+            font-size: 11px; color: var(--tp-text-light);
+            font-style: italic;
+            margin-top: 6px;
+        }
+
+        /* ============ DRILLDOWN MODAL (SỔ QUỸ) ============ */
+        .modal-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            display: none;
+            animation: fadeIn 0.2s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 94vw; max-width: 900px;
+            max-height: 90vh;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 101;
+            display: none;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+        .modal.active { display: flex; }
+        .modal-backdrop.active { display: block; }
+
+        .modal-header {
+            background: var(--tp-primary-dark);
+            color: white;
+            padding: 20px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-title {
+            font-size: 16px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .modal-close {
+            background: rgba(255,255,255,0.15);
+            border: none; color: white;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        .modal-close:hover { background: rgba(255,255,255,0.3); }
+
+        .modal-body {
+            flex: 1; overflow-y: auto;
+            padding: 24px;
+        }
+
+        .stmt-summary {
+            display: grid; grid-template-columns: repeat(3,1fr);
+            gap: 12px; margin-bottom: 20px;
+        }
+        @media (max-width: 600px) { .stmt-summary { grid-template-columns: 1fr; } }
+        .stmt-card {
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            text-align: center;
+        }
+        .stmt-card-label {
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            opacity: 0.8;
+        }
+        .stmt-card-value {
+            font-size: 18px; font-weight: 900;
+        }
+
+        .stmt-table-wrap { overflow-x: auto; }
+        .stmt-table {
+            width: 100%; border-collapse: collapse;
+            font-size: 13px;
+        }
+        .stmt-table th {
+            background: var(--tp-primary);
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .stmt-table th:last-child, .stmt-table td:last-child { text-align: right; }
+        .stmt-table th.text-right, .stmt-table td.text-right { text-align: right; }
+        .stmt-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--tp-border);
+            color: var(--tp-text);
+        }
+        .stmt-table tr:hover td { background: var(--tp-primary-soft); }
+        .stmt-table tr.opening-row td,
+        .stmt-table tr.closing-row td {
+            font-weight: 700;
+            background: #f0fdf4;
+        }
+        .tx-in  { color: var(--tp-success); font-weight: 600; }
+        .tx-out { color: var(--tp-danger);  font-weight: 600; }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--tp-border);
+            display: flex; justify-content: flex-end; gap: 10px;
+        }
+        .btn-export {
+            background: var(--tp-primary);
+            color: white; border: none;
+            border-radius: var(--radius-sm);
+            padding: 10px 20px;
+            font-size: 13px; font-weight: 700;
+            cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-export:hover { background: var(--tp-primary-dark); }
+
+        /* ============ CUSTOM SCROLLBAR ============ */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ============ TOOLTIP ============ */
+        [data-tooltip] {
+            position: relative; cursor: help;
+        }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: 120%; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(21,90,38,0.95);
+            color: white; font-size: 11px;
+            padding: 5px 10px; border-radius: 4px;
+            white-space: nowrap; pointer-events: none;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        [data-tooltip]:hover::after { opacity: 1; }
+    </style>
+</head>
+<body>
+
+<!-- ======== LOADING ======== -->
+<div id="loading" class="loading-overlay">
+    <div class="spinner-ring"></div>
+    <div style="font-weight:700;color:var(--tp-primary-dark);font-size:16px;">ĐANG TẢI DỮ LIỆU...</div>
+    <div style="color:var(--tp-text-muted);font-size:12px;margin-top:6px;">Vui lòng chờ trong giây lát</div>
+</div>
+
+<!-- ======== LOGIN OVERLAY ======== -->
+<div id="login-overlay" class="login-overlay">
+    <div class="login-card">
+        <img src="tuanphat_logo.png" alt="Tuấn Phát" class="login-logo">
+        <h2 class="login-title">Xác thực truy cập</h2>
+        <p class="login-subtitle">Chỉ dành cho nhân viên được cấp quyền</p>
+
+        <div id="email-group">
+            <label class="form-label">Email của bạn</label>
+            <input type="email" id="login-email" class="form-input" placeholder="your@email.com">
+            <button id="btn-request" class="btn-primary" onclick="requestOtp()">
+                <i class="fa-solid fa-paper-plane"></i> Nhận mã xác thực
+            </button>
+        </div>
+
+        <div id="otp-group" class="otp-group">
+            <div class="otp-sent-msg">
+                <i class="fa-solid fa-check-circle"></i> Mã OTP đã được gửi đến email của bạn.
+            </div>
+            <label class="form-label">Nhập mã OTP (6 chữ số)</label>
+            <input type="text" id="login-otp" class="form-input otp-input"
+                   placeholder="──────" maxlength="6" inputmode="numeric">
+            <button id="btn-verify" class="btn-primary" onclick="verifyOtp()">
+                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+            </button>
+            <div style="margin-top:12px;">
+                <button class="btn-link" onclick="showEmailGroup()">← Dùng email khác</button>
+            </div>
+        </div>
+
+        <div id="login-error" class="login-error"></div>
+    </div>
+</div>
+
+<!-- ======== MODAL SỔ QUỸ ======== -->
+<div id="modal-backdrop" class="modal-backdrop" onclick="closeModal()"></div>
+<div id="stmt-modal" class="modal">
+    <div class="modal-header">
+        <div class="modal-title">
+            <i class="fa-solid fa-book"></i>
+            <span>Sổ Quỹ</span>
+            <span id="stmt-bank-label" style="font-weight:500;opacity:0.85;font-size:13px;"></span>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+        <div class="stmt-summary" id="stmt-summary-cards"></div>
+        <div class="stmt-table-wrap">
+            <table class="stmt-table" id="stmt-table">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Diễn giải</th>
+                        <th>Tham chiếu</th>
+                        <th class="text-right">Thu vào</th>
+                        <th class="text-right">Chi ra</th>
+                        <th class="text-right">Số dư</th>
+                    </tr>
+                </thead>
+                <tbody id="stmt-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn-export" onclick="exportExcel()">
+            <i class="fa-solid fa-file-excel"></i> Tải Excel
+        </button>
+    </div>
+</div>
+
+<!-- ======== HEADER ======== -->
+<header>
+    <div class="header-inner">
+        <div class="brand">
+            <img src="tuanphat_logo.png" alt="Tuấn Phát" class="brand-logo">
+            <div class="brand-text">
+                <h1>Financial Dashboard</h1>
+                <p id="company-name">Tuấn Phát</p>
+            </div>
+        </div>
+        <div class="header-filters">
+            <!-- Date Range -->
+            <div class="filter-wrap">
+                <i class="fa-regular fa-calendar left-icon"></i>
+                <input type="text" id="daterange" class="filter-input" style="width:230px;" readonly>
+            </div>
+            <!-- Sổ Quỹ (Banks) -->
+            <div class="filter-wrap">
+                <i class="fa-solid fa-building-columns left-icon"></i>
+                <select id="bank-filter" class="filter-input filter-select">
+                    <option value="">Tất cả Sổ Quỹ</option>
+                </select>
+                <i class="fa-solid fa-chevron-down right-icon"></i>
+            </div>
+            <!-- User badge -->
+            <div class="user-badge" onclick="logout()" data-tooltip="Đăng xuất">
+                <div class="user-dot" id="user-initial">U</div>
+                <span id="user-email-short">User</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ======== MAIN ======== -->
+<main>
+
+    <!-- KPI Section -->
+    <p class="section-label"><i class="fa-solid fa-gauge-high" style="color:var(--tp-primary)"></i> Tổng quan</p>
+    <div class="kpi-grid">
+
+        <!-- Báo Giá -->
+        <div class="kpi-card" style="--card-accent: #8B5CF6;">
+            <div class="kpi-icon-wrap" style="background:#EDE9FE;color:#7C3AED;">
+                <i class="fa-solid fa-file-signature"></i>
+            </div>
+            <div class="kpi-label">Tổng Báo Giá</div>
+            <div class="kpi-value" id="kpi-quote-amount">0</div>
+            <div id="kpi-quote-badge" class="kpi-badge badge-neutral">
+                <i class="fa-solid fa-minus"></i> —
+            </div>
+            <div class="kpi-divider"></div>
+            <div class="kpi-sub">
+                <div>
+                    <div class="kpi-sub-label">Số lượng BG</div>
+                    <div class="kpi-sub-val" id="kpi-quote-count">0</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="kpi-sub-label">Cùng kỳ năm trước</div>
+                    <div id="kpi-quote-prev" class="kpi-sub-val" style="color:var(--tp-text-muted);font-size:12px;">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doanh Thu -->
+        <div class="kpi-card" style="--card-accent: #0EA5E9;">
+            <div class="kpi-icon-wrap" style="background:#E0F2FE;color:#0284C7;">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div class="kpi-label">Doanh Thu</div>
+            <div class="kpi-value" id="kpi-revenue">0</div>
+            <div id="kpi-revenue-badge" class="kpi-badge badge-neutral">
+                <i class="fa-solid fa-minus"></i> —
+            </div>
+            <div class="kpi-divider"></div>
+            <div class="kpi-sub">
+                <div>
+                    <div class="kpi-sub-label">Cùng kỳ năm trước</div>
+                    <div id="kpi-revenue-prev" class="kpi-sub-val" style="color:var(--tp-text-muted);font-size:12px;">—</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="kpi-sub-label">Số HĐ</div>
+                    <div class="kpi-sub-val" id="kpi-invoice-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chi Phí -->
+        <div class="kpi-card" style="--card-accent: #F59E0B;">
+            <div class="kpi-icon-wrap" style="background:#FEF3C7;color:#D97706;">
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+            <div class="kpi-label">Tổng Chi Phí</div>
+            <div class="kpi-value" id="kpi-expense">0</div>
+            <div id="kpi-expense-badge" class="kpi-badge badge-neutral">
+                <i class="fa-solid fa-minus"></i> —
+            </div>
+            <div class="kpi-divider"></div>
+            <div class="kpi-sub">
+                <div>
+                    <div class="kpi-sub-label">Cùng kỳ năm trước</div>
+                    <div id="kpi-expense-prev" class="kpi-sub-val" style="color:var(--tp-text-muted);font-size:12px;">—</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="kpi-sub-label">Số HĐ CP</div>
+                    <div class="kpi-sub-val" id="kpi-expense-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lợi Nhuận -->
+        <div class="kpi-card profit-card">
+            <div class="kpi-label">Lợi Nhuận Thuần</div>
+            <div class="kpi-value" id="kpi-profit">0</div>
+            <div id="kpi-profit-badge" class="kpi-badge badge-neutral">
+                <i class="fa-solid fa-minus"></i> —
+            </div>
+            <div class="kpi-divider"></div>
+            <div class="kpi-sub">
+                <div>
+                    <div class="kpi-sub-label">Biên lợi nhuận</div>
+                    <div class="kpi-sub-val" id="kpi-margin">—</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="kpi-sub-label">vs năm trước</div>
+                    <div id="kpi-profit-prev" class="kpi-sub-val" style="font-size:12px;opacity:0.75;">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <p class="section-label"><i class="fa-solid fa-chart-bar" style="color:var(--tp-primary)"></i> Biểu đồ phân tích</p>
+    <div class="charts-row">
+
+        <!-- Monthly Sales Trend -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Monthly Sales Trend
+                </div>
+<div></div>
+            </div>
+            <div class="chart-area"><canvas id="chartSalesTrend"></canvas></div>
+        </div>
+
+        <!-- Cash Flow -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    Cash Flow
+                </div>
+                <div class="cashflow-toolbar">
+                    <div class="cashflow-legend">
+                        <span class="legend-label">
+                            <span class="legend-dot" style="background:var(--chart-in)"></span> Thu vào
+                        </span>
+                        <span class="legend-label">
+                            <span class="legend-dot" style="background:var(--chart-out)"></span> Chi ra
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-area"><canvas id="chartCashFlow"></canvas></div>
+            <!-- Summary & Drilldown -->
+            <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                <div class="cashflow-summary-box" id="cashflow-summary-box" style="display:none!important;">
+                    <span class="cashflow-summary-label">Đã chọn:</span>
+                    <span class="cashflow-summary-value" id="cashflow-net">0</span>
+                </div>
+                <button class="btn-detail" onclick="openBankStatement()">
+                    <i class="fa-solid fa-book-open"></i> Xem Sổ Quỹ
+                </button>
+            </div>
+            <div class="cashflow-tip">Nhấp vào cột để xem chi tiết từng tháng</div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+// ============================================================
+// CONFIGURATION
+// ============================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiQ1jb0Di4CV3CnA18BOWhFFUHBn1JnwZi6DYpsE3eDh6zLvQgWOCfevNKRxQMMbqS/exec';
+
+// ============================================================
+// STATE
+// ============================================================
+let db = {
+    AR_INV_HD: [], AR_INV_LINE: [],
+    AP_INV_HD: [], AP_INV_LINE: [],
+    AR_PMT_HD: [], PAYMENT: [],
+    Quote_HD: [], Quote_Line: [],
+    Banks: [], Company_Profile: []
+};
+let charts = {};
+let state = {
+    startDate: moment().startOf('year'),
+    endDate: moment().endOf('year'),
+    bankAccountId: '' // '' = all
+};
+let selectedCashflowMonths = {}; // { 'YYYY-MM': {in, out} }
+
+// ============================================================
+// COLOR PALETTE (Tuấn Phát Green)
+// ============================================================
+const palette = {
+    primary:     '#1E7C34',
+    primaryDark: '#155A26',
+    primaryLight:'#28A745',
+    chartIn:     '#1E7C34',
+    chartOut:    '#E05252',
+    prevYear:    '#94A3B8',
+    gray:        '#6B7C72'
+};
+
+// ============================================================
+// FORMATTERS
+// ============================================================
+const fmt = (n) => {
+    if (n === null || n === undefined || isNaN(n)) return '0';
+    const abs = Math.abs(Math.round(n));
+    const str = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return n < 0 ? '-' + str : str;
+};
+const fmtShort = (n) => {
+    if (!n && n !== 0) return '0';
+    const abs = Math.abs(n);
+    if (abs >= 1e9) return (n/1e9).toFixed(1) + ' Tỷ';
+    if (abs >= 1e6) return (n/1e6).toFixed(0) + ' Tr';
+    if (abs >= 1e3) return (n/1e3).toFixed(0) + ' K';
+    return String(Math.round(n));
+};
+const pct = (curr, prev) => {
+    if (!prev || prev === 0) return curr > 0 ? 100 : 0;
+    return ((curr - prev) / Math.abs(prev)) * 100;
+};
+const parseAmt = (v) => {
+    if (typeof v === 'number') return v;
+    if (!v) return 0;
+    return parseFloat(String(v).replace(/,/g, '')) || 0;
+};
+const parseDate = (v) => {
+    if (!v) return null;
+    // Handle ISO
+    if (typeof v === 'string' && v.match(/^\d{4}-/)) {
+        const d = new Date(v); return isNaN(d) ? null : moment(d);
+    }
+    // Handle dd/MM/yyyy
+    if (typeof v === 'string' && v.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
+        const parts = v.split('/');
+        const day = parseInt(parts[0]), mon = parseInt(parts[1]), yr = parseInt(parts[2]);
+        if (day > 12) return moment(new Date(yr, mon-1, day));
+        return moment(new Date(yr, mon-1, day));
+    }
+    const m = moment(v); return m.isValid() ? m : null;
+};
+const inRange = (d, s, e) => d && d.isBetween(s, e, 'day', '[]');
+
+// ============================================================
+// UPDATE KPI BADGE
+// ============================================================
+function updateBadge(elId, curr, prev) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const p = pct(curr, prev);
+    let cls, icon, txt;
+    if (p > 0)      { cls = 'badge-up';   icon = 'fa-arrow-trend-up';   txt = '+' + p.toFixed(1) + '% so CK'; }
+    else if (p < 0) { cls = 'badge-down'; icon = 'fa-arrow-trend-down'; txt = p.toFixed(1) + '% so CK'; }
+    else            { cls = 'badge-neutral'; icon = 'fa-minus';          txt = '0% so CK'; }
+    el.className = 'kpi-badge ' + cls;
+    el.innerHTML = `<i class="fa-solid ${icon}"></i> ${txt}`;
+}
+
+// ============================================================
+// LOAD DATA
+// ============================================================
+function loadData() {
+    const session = localStorage.getItem('tp_session');
+    if (!session) {
+        $('#loading').fadeOut(200);
+        $('#login-overlay').css('display', 'flex');
+        return;
+    }
+    const url = `${APPS_SCRIPT_URL}?api=dashboardData&session=${session}`;
+    fetch(url)
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                db = res.data;
+                setupFilters();
+                refreshDashboard();
+                $('#loading').fadeOut(300);
+                $('#login-overlay').hide();
+                // Show user info
+                const email = localStorage.getItem('tp_email') || '';
+                document.getElementById('user-initial').textContent = email.charAt(0).toUpperCase() || 'U';
+                document.getElementById('user-email-short').textContent = email.split('@')[0] || 'User';
+                // Company name
+                if (db.Company_Profile && db.Company_Profile.length > 0) {
+                    const name = db.Company_Profile[0].Company_Name || 'Tuấn Phát';
+                    document.getElementById('company-name').textContent = name;
+                }
+            } else {
+                localStorage.removeItem('tp_session');
+                $('#loading').fadeOut(200);
+                $('#login-overlay').css('display', 'flex');
+                if (res.error) showLoginError(res.error);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            $('#loading').fadeOut(300);
+            alert('Lỗi kết nối server. Vui lòng kiểm tra mạng.');
+        });
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+function requestOtp() {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) return showLoginError('Vui lòng nhập email.');
+    const btn = document.getElementById('btn-request');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+    document.getElementById('login-error').style.display = 'none';
+    fetch(`${APPS_SCRIPT_URL}?api=request_otp&email=${encodeURIComponent(email)}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                document.getElementById('email-group').style.display = 'none';
+                document.getElementById('otp-group').style.display = 'block';
+            } else showLoginError(res.error || 'Lỗi không xác định.');
+        })
+        .catch(() => showLoginError('Lỗi kết nối.'))
+        .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Nhận mã xác thực'; });
+}
+
+function verifyOtp() {
+    const email = document.getElementById('login-email').value.trim();
+    const otp = document.getElementById('login-otp').value.trim();
+    if (!otp) return showLoginError('Vui lòng nhập mã OTP.');
+    const btn = document.getElementById('btn-verify');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực...';
+    document.getElementById('login-error').style.display = 'none';
+    fetch(`${APPS_SCRIPT_URL}?api=verify_otp&email=${encodeURIComponent(email)}&otp=${otp}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                localStorage.setItem('tp_session', res.session);
+                localStorage.setItem('tp_email', res.email);
+                $('#loading').show();
+                loadData();
+            } else showLoginError(res.error || 'Mã OTP không đúng.');
+        })
+        .catch(() => showLoginError('Lỗi kết nối.'))
+        .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập'; });
+}
+
+function showEmailGroup() {
+    document.getElementById('otp-group').style.display = 'none';
+    document.getElementById('email-group').style.display = 'block';
+    document.getElementById('login-error').style.display = 'none';
+}
+function showLoginError(msg) {
+    const el = document.getElementById('login-error');
+    el.textContent = msg; el.style.display = 'block';
+}
+function logout() {
+    if (!confirm('Bạn có muốn đăng xuất?')) return;
+    localStorage.removeItem('tp_session');
+    localStorage.removeItem('tp_email');
+    location.reload();
+}
+
+// ============================================================
+// SETUP FILTERS
+// ============================================================
+function setupFilters() {
+    // Banks
+    const bankSel = document.getElementById('bank-filter');
+    while (bankSel.options.length > 1) bankSel.remove(1);
+    (db.Banks || []).forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.ID || '';
+        opt.text = b.Bank_Account || b.ID || '';
+        bankSel.appendChild(opt);
+    });
+}
+
+// ============================================================
+// CALCULATE METRICS
+// ============================================================
+function calculateMetrics(prevYear = false) {
+    const offset = prevYear ? -1 : 0;
+    const s = moment(state.startDate).add(offset, 'year');
+    const e = moment(state.endDate).add(offset, 'year');
+    const bId = state.bankAccountId;
+
+    // Quote
+    let quoteAmt = 0, quoteCount = 0;
+    (db.Quote_HD || []).forEach(r => {
+        const d = parseDate(r.Quote_Date);
+        if (!inRange(d, s, e)) return;
+        quoteAmt += parseAmt(r.Amount);
+        quoteCount++;
+    });
+
+    // Revenue (AR_INV_HD by Date)
+    let revenue = 0, invCount = 0;
+    const monthlyRev = {};
+    (db.AR_INV_HD || []).forEach(r => {
+        const d = parseDate(r.Date);
+        if (!inRange(d, s, e)) return;
+        const amt = parseAmt(r.Amount);
+        revenue += amt;
+        invCount++;
+        if (!prevYear) {
+            const mk = d.format('YYYY-MM');
+            monthlyRev[mk] = (monthlyRev[mk] || 0) + amt;
+        }
+    });
+
+    // Expense (AP_INV_HD by Date)
+    let expense = 0, expCount = 0;
+    (db.AP_INV_HD || []).forEach(r => {
+        const d = parseDate(r.Date);
+        if (!inRange(d, s, e)) return;
+        expense += parseAmt(r.Amount);
+        expCount++;
+    });
+
+    // Cash Flow
+    let cashIn = 0, cashOut = 0;
+    const monthlyCashIn = {}, monthlyCashOut = {};
+    (db.AR_PMT_HD || []).forEach(r => {
+        const d = parseDate(r.Date);
+        if (!inRange(d, s, e)) return;
+        if (bId && r.Bank_Account_ID !== bId) return;
+        const amt = parseAmt(r.Amount);
+        cashIn += amt;
+        if (!prevYear) {
+            const mk = d.format('YYYY-MM');
+            monthlyCashIn[mk] = (monthlyCashIn[mk] || 0) + amt;
+        }
+    });
+    (db.PAYMENT || []).forEach(r => {
+        const d = parseDate(r.Date);
+        if (!inRange(d, s, e)) return;
+        if (bId && r.Bank_Account_ID !== bId) return;
+        const amt = parseAmt(r.Amount);
+        cashOut += amt;
+        if (!prevYear) {
+            const mk = d.format('YYYY-MM');
+            monthlyCashOut[mk] = (monthlyCashOut[mk] || 0) + amt;
+        }
+    });
+
+    const profit = revenue - expense;
+    const margin = revenue > 0 ? (profit / revenue * 100).toFixed(1) : 0;
+
+    return {
+        quoteAmt, quoteCount, revenue, invCount,
+        expense, expCount, profit, margin,
+        cashIn, cashOut,
+        monthlyRev,
+        monthlyCashIn, monthlyCashOut
+    };
+}
+
+// ============================================================
+// REFRESH DASHBOARD
+// ============================================================
+function refreshDashboard() {
+    const cur = calculateMetrics(false);
+    const prv = calculateMetrics(true);
+
+    // Quote KPI
+    document.getElementById('kpi-quote-amount').textContent = fmt(cur.quoteAmt);
+    document.getElementById('kpi-quote-count').textContent = fmt(cur.quoteCount);
+    document.getElementById('kpi-quote-prev').textContent = fmt(prv.quoteAmt) + ' đ';
+    updateBadge('kpi-quote-badge', cur.quoteAmt, prv.quoteAmt);
+
+    // Revenue KPI
+    document.getElementById('kpi-revenue').textContent = fmt(cur.revenue);
+    document.getElementById('kpi-revenue-prev').textContent = fmt(prv.revenue) + ' đ';
+    document.getElementById('kpi-invoice-count').textContent = fmt(cur.invCount);
+    updateBadge('kpi-revenue-badge', cur.revenue, prv.revenue);
+
+    // Expense KPI
+    document.getElementById('kpi-expense').textContent = fmt(cur.expense);
+    document.getElementById('kpi-expense-prev').textContent = fmt(prv.expense) + ' đ';
+    document.getElementById('kpi-expense-count').textContent = fmt(cur.expCount);
+    updateBadge('kpi-expense-badge', cur.expense, prv.expense);
+
+    // Profit KPI
+    document.getElementById('kpi-profit').textContent = fmt(cur.profit);
+    document.getElementById('kpi-margin').textContent = cur.margin + '%';
+    document.getElementById('kpi-profit-prev').textContent = fmt(prv.profit) + ' đ';
+    updateBadge('kpi-profit-badge', cur.profit, prv.profit);
+
+    // Charts
+    drawSalesTrendChart(cur.monthlyRev);
+    drawCashFlowChart(cur.monthlyCashIn, cur.monthlyCashOut);
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#6B7C72';
+Chart.defaults.scale.grid.color = '#F0F4F1';
+
+function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function drawSalesTrendChart(monthlyRev) {
+    destroyChart('chartSalesTrend');
+    // Build months in range
+    const months = [];
+    let cur = moment(state.startDate).startOf('month');
+    const end = moment(state.endDate).startOf('month');
+    while (cur.isSameOrBefore(end)) {
+        months.push(cur.format('YYYY-MM'));
+        cur = cur.clone().add(1, 'month');
+    }
+    const labels = months.map(m => moment(m, 'YYYY-MM').format('MM/YY'));
+    const dataCur = months.map(m => monthlyRev[m] || 0);
+
+    const ctx = document.getElementById('chartSalesTrend').getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 300);
+    grad.addColorStop(0, palette.primary);
+    grad.addColorStop(1, 'rgba(30,124,52,0.5)');
+
+    charts['chartSalesTrend'] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Doanh thu',
+                    data: dataCur,
+                    backgroundColor: grad,
+                    borderRadius: { topLeft:5, topRight:5 },
+                    maxBarThickness: 40
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(21,90,38,0.92)',
+                    padding: 12, cornerRadius: 8,
+                    callbacks: {
+                        label: ctx => fmt(ctx.raw) + ' đ'
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size:11 } } },
+                y: {
+                    beginAtZero: true,
+                    grid: { borderDash: [3,3] },
+                    ticks: { callback: v => fmtShort(v), font: { size:11 } }
+                }
+            }
+        }
+    });
+}
+
+function drawCashFlowChart(monthlyCashIn, monthlyCashOut) {
+    destroyChart('chartCashFlow');
+    const months = [];
+    let cur = moment(state.startDate).startOf('month');
+    const end = moment(state.endDate).startOf('month');
+    while (cur.isSameOrBefore(end)) {
+        months.push(cur.format('YYYY-MM'));
+        cur = cur.clone().add(1, 'month');
+    }
+    const labels = months.map(m => moment(m, 'YYYY-MM').format('MM/YY'));
+    const dataIn  = months.map(m => monthlyCashIn[m]  || 0);
+    const dataOut = months.map(m => monthlyCashOut[m] || 0);
+
+    // Track selected state
+    const selectedIn  = new Array(months.length).fill(false);
+    const selectedOut = new Array(months.length).fill(false);
+    selectedCashflowMonths = {};
+
+    const ctx = document.getElementById('chartCashFlow').getContext('2d');
+    charts['chartCashFlow'] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Thu vào',
+                    data: dataIn,
+                    backgroundColor: palette.chartIn,
+                    hoverBackgroundColor: '#28A745',
+                    borderRadius: { topLeft:4, topRight:4 },
+                    maxBarThickness: 32,
+                    categoryPercentage: 0.7,
+                    barPercentage: 0.48
+                },
+                {
+                    label: 'Chi ra',
+                    data: dataOut,
+                    backgroundColor: palette.chartOut,
+                    hoverBackgroundColor: '#EF4444',
+                    borderRadius: { topLeft:4, topRight:4 },
+                    maxBarThickness: 32,
+                    categoryPercentage: 0.7,
+                    barPercentage: 0.48
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(21,90,38,0.92)',
+                    padding: 12, cornerRadius: 8,
+                    callbacks: {
+                        label: ctx => {
+                            const sign = ctx.datasetIndex === 0 ? '+' : '-';
+                            return ctx.dataset.label + ': ' + sign + fmt(ctx.raw) + ' đ';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size:11 } } },
+                y: {
+                    beginAtZero: true,
+                    grid: { borderDash: [3,3] },
+                    ticks: { callback: v => fmtShort(v), font: { size:11 } }
+                }
+            },
+            onClick: (evt, els) => {
+                if (!els || els.length === 0) return;
+                const idx = els[0].index;
+                const month = months[idx];
+                const dsIdx = els[0].datasetIndex;
+                const key = month + '_' + dsIdx;
+
+                if (!selectedCashflowMonths[key]) {
+                    selectedCashflowMonths[key] = {
+                        month, dsIdx,
+                        amount: dsIdx === 0 ? dataIn[idx] : dataOut[idx]
+                    };
+                    // Highlight selected bar
+                    charts['chartCashFlow'].data.datasets[dsIdx].backgroundColor =
+                        charts['chartCashFlow'].data.datasets[dsIdx].backgroundColor instanceof Array
+                        ? charts['chartCashFlow'].data.datasets[dsIdx].backgroundColor
+                        : new Array(months.length).fill(dsIdx === 0 ? palette.chartIn : palette.chartOut);
+                    if (Array.isArray(charts['chartCashFlow'].data.datasets[dsIdx].backgroundColor)) {
+                        charts['chartCashFlow'].data.datasets[dsIdx].backgroundColor[idx] =
+                            dsIdx === 0 ? '#0A5C22' : '#B91C1C';
+                    }
+                } else {
+                    delete selectedCashflowMonths[key];
+                }
+                charts['chartCashFlow'].update();
+                updateCashflowSummary();
+            }
+        }
+    });
+}
+
+function updateCashflowSummary() {
+    let net = 0;
+    const keys = Object.keys(selectedCashflowMonths);
+    keys.forEach(k => {
+        const item = selectedCashflowMonths[k];
+        if (item.dsIdx === 0) net += item.amount;
+        else net -= item.amount;
+    });
+    const box = document.getElementById('cashflow-summary-box');
+    const val = document.getElementById('cashflow-net');
+    if (keys.length > 0) {
+        box.style.removeProperty('display');
+        val.textContent = (net >= 0 ? '+' : '') + fmt(net);
+        val.className = 'cashflow-summary-value' + (net < 0 ? ' negative' : '');
+    } else {
+        box.style.setProperty('display', 'none', 'important');
+    }
+}
+
+// ============================================================
+// BANK STATEMENT DRILLDOWN
+// ============================================================
+let currentStmtData = null;
+
+function openBankStatement() {
+    const session = localStorage.getItem('tp_session');
+    if (!session) return;
+
+    document.getElementById('modal-backdrop').classList.add('active');
+    document.getElementById('stmt-modal').classList.add('active');
+    document.getElementById('stmt-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
+    document.getElementById('stmt-summary-cards').innerHTML = '';
+
+    const startStr = state.startDate.format('DD/MM/YYYY');
+    const endStr   = state.endDate.format('DD/MM/YYYY');
+    const bankId   = state.bankAccountId;
+
+    // Bank label
+    const bank = (db.Banks || []).find(b => b.ID === bankId);
+    const bankLabel = bank ? bank.Bank_Account : (bankId ? bankId : 'Tất cả tài khoản');
+    document.getElementById('stmt-bank-label').textContent = '— ' + bankLabel;
+
+    fetch(`${APPS_SCRIPT_URL}?api=bankStatement&session=${session}&bankAccountId=${bankId}&startDate=${encodeURIComponent(startStr)}&endDate=${encodeURIComponent(endStr)}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                currentStmtData = res.data;
+                renderBankStatement(res.data);
+            } else {
+                document.getElementById('stmt-tbody').innerHTML =
+                    `<tr><td colspan="6" style="text-align:center;color:var(--tp-danger);padding:20px;">${res.error || 'Lỗi tải dữ liệu'}</td></tr>`;
+            }
+        })
+        .catch(() => {
+            document.getElementById('stmt-tbody').innerHTML =
+                '<tr><td colspan="6" style="text-align:center;color:var(--tp-danger);padding:20px;">Lỗi kết nối</td></tr>';
+        });
+}
+
+function renderBankStatement(data) {
+    // Summary cards
+    const summaryEl = document.getElementById('stmt-summary-cards');
+    summaryEl.innerHTML = `
+        <div class="stmt-card" style="background:#f0fdf4;color:#155A26;">
+            <div class="stmt-card-label">Số dư đầu kỳ</div>
+            <div class="stmt-card-value">${fmt(data.openingBalance)} đ</div>
+        </div>
+        <div class="stmt-card" style="background:linear-gradient(135deg,#1E7C34,#28A745);color:white;">
+            <div class="stmt-card-label">Thu vào / Chi ra</div>
+            <div class="stmt-card-value">+${fmt(data.totalIn)} / -${fmt(data.totalOut)}</div>
+        </div>
+        <div class="stmt-card" style="background:#1E7C34;color:white;">
+            <div class="stmt-card-label">Số dư cuối kỳ</div>
+            <div class="stmt-card-value">${fmt(data.closingBalance)} đ</div>
+        </div>
+    `;
+
+    // Table
+    const tbody = document.getElementById('stmt-tbody');
+    let rows = '';
+
+    // Opening row
+    rows += `<tr class="opening-row">
+        <td colspan="3"><strong>SỐ DƯ ĐẦU KỲ</strong></td>
+        <td class="text-right">—</td>
+        <td class="text-right">—</td>
+        <td class="text-right"><strong>${fmt(data.openingBalance)} đ</strong></td>
+    </tr>`;
+
+    (data.transactions || []).forEach(tx => {
+        const inAmt  = tx.type === 'IN' ? `<span class="tx-in">+${fmt(tx.amount)} đ</span>` : '—';
+        const outAmt = tx.type === 'OUT' ? `<span class="tx-out">-${fmt(tx.amount)} đ</span>` : '—';
+        rows += `<tr>
+            <td style="white-space:nowrap;">${tx.dateDisplay || ''}</td>
+            <td>${tx.description || ''}</td>
+            <td style="font-size:11px;color:var(--tp-text-muted);">${tx.ref || ''}</td>
+            <td class="text-right">${inAmt}</td>
+            <td class="text-right">${outAmt}</td>
+            <td class="text-right" style="font-weight:600;">${fmt(tx.balance)} đ</td>
+        </tr>`;
+    });
+
+    // Closing row
+    rows += `<tr class="closing-row">
+        <td colspan="3"><strong>SỐ DƯ CUỐI KỲ</strong></td>
+        <td class="text-right tx-in">+${fmt(data.totalIn)} đ</td>
+        <td class="text-right tx-out">-${fmt(data.totalOut)} đ</td>
+        <td class="text-right"><strong>${fmt(data.closingBalance)} đ</strong></td>
+    </tr>`;
+
+    tbody.innerHTML = rows || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--tp-text-muted);">Không có giao dịch trong kỳ</td></tr>';
+}
+
+function closeModal() {
+    document.getElementById('modal-backdrop').classList.remove('active');
+    document.getElementById('stmt-modal').classList.remove('active');
+}
+
+// ============================================================
+// EXCEL EXPORT
+// ============================================================
+function exportExcel() {
+    if (!currentStmtData) return;
+    const d = currentStmtData;
+    const rows = [];
+
+    rows.push(['SỔ QUỸ – CÔNG TY TUẤN PHÁT']);
+    rows.push(['Tài khoản:', d.bankLabel || '']);
+    rows.push(['Kỳ:', d.startDate + ' – ' + d.endDate]);
+    rows.push([]);
+    rows.push(['Số dư đầu kỳ:', d.openingBalance]);
+    rows.push([]);
+    rows.push(['Ngày', 'Diễn giải', 'Tham chiếu', 'Thu vào', 'Chi ra', 'Số dư']);
+
+    (d.transactions || []).forEach(tx => {
+        rows.push([
+            tx.dateDisplay || '',
+            tx.description || '',
+            tx.ref || '',
+            tx.type === 'IN' ? tx.amount : '',
+            tx.type === 'OUT' ? tx.amount : '',
+            tx.balance
+        ]);
+    });
+    rows.push([]);
+    rows.push(['Tổng thu vào:', d.totalIn]);
+    rows.push(['Tổng chi ra:', d.totalOut]);
+    rows.push(['Số dư cuối kỳ:', d.closingBalance]);
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Column widths
+    ws['!cols'] = [
+        { wch: 12 }, { wch: 40 }, { wch: 15 }, { wch: 16 }, { wch: 16 }, { wch: 16 }
+    ];
+    // Style number columns
+    const numFmt = '#,##0';
+    [4,5,6].forEach(c => {
+        for (let r = 6; r < rows.length; r++) {
+            const cell = XLSX.utils.encode_cell({r, c});
+            if (ws[cell] && typeof ws[cell].v === 'number') {
+                ws[cell].z = numFmt;
+            }
+        }
+    });
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Sổ Quỹ');
+    const filename = `SoQuy_TuanPhat_${(d.startDate||'').replace(/\//g,'')}_${(d.endDate||'').replace(/\//g,'')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+$(document).ready(function() {
+    // DateRangePicker
+    $('#daterange').daterangepicker({
+        startDate: state.startDate,
+        endDate: state.endDate,
+        locale: {
+            format: 'DD/MM/YYYY',
+            applyLabel: 'Áp dụng', cancelLabel: 'Hủy',
+            customRangeLabel: 'Tùy chọn',
+            daysOfWeek: ['CN','T2','T3','T4','T5','T6','T7'],
+            monthNames: ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6',
+                         'Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12']
+        },
+        ranges: {
+            'Năm nay':    [moment().startOf('year'), moment().endOf('year')],
+            'Tháng này':  [moment().startOf('month'), moment().endOf('month')],
+            'Quý này':    [moment().startOf('quarter'), moment().endOf('quarter')],
+            'Năm trước':  [moment().subtract(1,'year').startOf('year'), moment().subtract(1,'year').endOf('year')]
+        }
+    }, function(start, end) {
+        state.startDate = start;
+        state.endDate = end;
+        refreshDashboard();
+    });
+
+    // Bank filter
+    $('#bank-filter').change(function() {
+        state.bankAccountId = $(this).val();
+        refreshDashboard();
+    });
+
+    // Load data
+    loadData();
+});
+</script>
+</body>
+</html>
