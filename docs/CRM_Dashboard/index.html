@@ -843,9 +843,16 @@ function setupFilterOptions() {
     document.getElementById(id).addEventListener('change', applyFilters);
   });
 
+  const startY = moment().startOf('year');
+  const endY   = moment().endOf('year');
+  dateFilterStart = startY;
+  dateFilterEnd   = endY;
+
   // Date range picker
   $('#f-daterange').daterangepicker({
-    autoUpdateInput: false,
+    startDate: startY,
+    endDate: endY,
+    autoUpdateInput: true,
     locale: {
       format: 'DD/MM/YYYY',
       applyLabel: 'Áp dụng', cancelLabel: 'Xóa',
@@ -872,6 +879,9 @@ function setupFilterOptions() {
     dateFilterEnd   = null;
     applyFilters();
   });
+  
+  // Set initial value in input
+  document.getElementById('f-daterange').value = startY.format('DD/MM/YYYY') + ' — ' + endY.format('DD/MM/YYYY');
 }
 
 function fillSelect(id, values, placeholder) {
@@ -904,9 +914,15 @@ function applyFilters() {
 
   filteredOpps = allOpps.filter(o => {
     // Date range filter (by Creation_Date)
-    if (dateFilterStart && dateFilterEnd && o.creationDate) {
-      const cd = moment(o.creationDate);
-      if (cd.isValid() && !cd.isBetween(dateFilterStart, dateFilterEnd, 'day', '[]')) return false;
+    if (dateFilterStart && dateFilterEnd) {
+      if (!o.creationDate) return false;
+      let cd = moment(o.creationDate, moment.ISO_8601);
+      if (!cd.isValid()) cd = moment(o.creationDate, ['DD/MM/YYYY', 'MM/DD/YYYY', 'DD-MMM-YYYY', 'YYYY-MM-DD'], true);
+      if (!cd.isValid()) cd = moment(new Date(o.creationDate));
+      
+      if (!cd.isValid() || !cd.isBetween(dateFilterStart, dateFilterEnd, 'day', '[]')) {
+        return false;
+      }
     }
     if (zone   && o.zone     !== zone)   return false;
     if (cat    && o.category !== cat)    return false;
@@ -933,9 +949,15 @@ function resetFilters() {
     document.getElementById(id).value = '';
   });
   document.getElementById('search-input').value = '';
-  document.getElementById('f-daterange').value = '';
-  dateFilterStart = null;
-  dateFilterEnd   = null;
+  
+  const startY = moment().startOf('year');
+  const endY   = moment().endOf('year');
+  $('#f-daterange').data('daterangepicker').setStartDate(startY);
+  $('#f-daterange').data('daterangepicker').setEndDate(endY);
+  document.getElementById('f-daterange').value = startY.format('DD/MM/YYYY') + ' — ' + endY.format('DD/MM/YYYY');
+  dateFilterStart = startY;
+  dateFilterEnd   = endY;
+
   document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.status-tab[data-status="all"]').classList.add('active');
   statusTabFilter = 'all';
