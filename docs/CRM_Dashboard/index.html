@@ -501,7 +501,7 @@ tr.opp-row.selected { background: #E8F5EC; }
 <!-- ── Filter Bar ─────────────────────────────────────────── -->
 <div class="filter-bar">
   <span class="filter-label">Lọc:</span>
-  <div class="search-wrap" style="max-width:240px; flex:none;">
+  <div class="search-wrap" style="width:260px; flex:none;">
     <i class="fa-regular fa-calendar search-icon"></i>
     <input class="search-input" id="f-daterange" type="text" placeholder="Khoảng ngày tạo" readonly>
   </div>
@@ -1208,7 +1208,7 @@ function openPanel(oppId) {
           <div class="tl-dot"></div>
           <div class="tl-date">${dateStr}</div>
           <div class="tl-text">${esc(a.description)}</div>
-          <div class="tl-by"><i class="fa-solid fa-user-pen"></i> ${esc(a.by)}</div>
+          <div class="tl-by"><i class="fa-solid fa-user-pen"></i> ${esc(a.byName || a.by)}</div>
         </div>`;
     }).join('');
   }
