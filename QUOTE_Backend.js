@@ -1,6 +1,14 @@
-function doGet(e) {
+/**
+ * ============================================================
+ * FILE: QUOTE_Backend.js
+ * Chức năng: Logic in báo giá (Quote_HD / Quote_Line)
+ * Được gọi từ MAIN_Router.js → handleQuotePrint()
+ * ============================================================
+ */
+
+function getQuotePrintPage(e) {
   var quoteId = e.parameter.id;
-  if (!quoteId) return HtmlService.createHtmlOutput("<h3>Lỗi: Thiếu ID!</h3>");
+  if (!quoteId) return HtmlService.createHtmlOutput("<h3>Lỗi: Thiếu ID báo giá!</h3>");
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
@@ -120,7 +128,7 @@ function doGet(e) {
     });
   }
 
-  var template = HtmlService.createTemplateFromFile('Index');
+  var template = HtmlService.createTemplateFromFile('QUOTE_UI');
   template.company = company;
   template.quote = quote;
   template.sections = sections;
