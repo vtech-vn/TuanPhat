@@ -35,6 +35,11 @@ function doGet(e) {
     return handleExportExcel(e);
   }
 
+  // 6. CRM Dashboard data
+  if (e.parameter.api === 'crmData') {
+    return handleCrmData(e);
+  }
+
   // --- ROUTE MẶC ĐỊNH: In Báo Giá ---
   // Nếu không có api param → vào chức năng in báo giá
   return handleQuotePrint(e);
@@ -201,3 +206,16 @@ function jsonResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+/**
+ * API: Lấy dữ liệu CRM Dashboard
+ */
+function handleCrmData(e) {
+  const email = verifySession(e.parameter.session);
+  if (!email) {
+    return jsonResponse({ success: false, error: 'Phiên đăng nhập không hợp lệ.' });
+  }
+  return ContentService.createTextOutput(getCrmData())
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
