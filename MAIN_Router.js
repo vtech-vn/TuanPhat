@@ -41,7 +41,6 @@ function doGet(e) {
   }
 
   // --- ROUTE MẶC ĐỊNH: In Báo Giá ---
-  // Nếu không có api param → vào chức năng in báo giá
   return handleQuotePrint(e);
 }
 

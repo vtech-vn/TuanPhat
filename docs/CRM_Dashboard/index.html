@@ -563,10 +563,10 @@ tr.opp-row.selected { background: #E8F5EC; }
       <div class="kpi-sub">Hoàn thành</div>
     </div>
     <div class="kpi-card lost">
-      <div class="kpi-icon"><i class="fa-solid fa-percent"></i></div>
-      <div class="kpi-label">Tỉ lệ chuyển đổi</div>
-      <div class="kpi-value" id="k-rate">0%</div>
-      <div class="kpi-sub">Đã ký HĐ / Tổng</div>
+      <div class="kpi-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+      <div class="kpi-label">Pipeline (Có nhu cầu)</div>
+      <div class="kpi-value" id="k-pipeline" style="font-size:18px">0</div>
+      <div class="kpi-sub">Tổng giá trị ước tính</div>
     </div>
   </div>
 
@@ -811,12 +811,21 @@ function setupFilterOptions() {
   const zones    = [...new Set(allOpps.map(o => o.zone).filter(Boolean))].sort();
   const cats     = [...new Set(allOpps.map(o => o.category).filter(Boolean))].sort();
   const sources  = [...new Set(allOpps.map(o => o.source).filter(Boolean))].sort();
-  const pics     = [...new Set(allOpps.map(o => o.salesPic).filter(Boolean))].sort();
+  // Build unique name list (display salesPicName but filter by salesPic ID)
+  const picMap = {}; // picId → picName
+  allOpps.forEach(o => { if (o.salesPic) picMap[o.salesPic] = o.salesPicName || o.salesPic; });
 
   fillSelect('f-zone',     zones,   'Tất cả khu vực');
   fillSelect('f-category', cats,    'Tất cả loại');
   fillSelect('f-source',   sources, 'Tất cả nguồn');
-  fillSelect('f-pic',      pics,    'Tất cả NV');
+  // Fill PIC select with name as text but ID as value
+  const picSel = document.getElementById('f-pic');
+  picSel.innerHTML = '<option value="">Tất cả nhân viên</option>';
+  Object.entries(picMap).sort((a,b) => a[1].localeCompare(b[1])).forEach(([id, name]) => {
+    const opt = document.createElement('option');
+    opt.value = id; opt.text = name;
+    picSel.appendChild(opt);
+  });
 
   ['f-zone','f-category','f-source','f-pic','f-score'].forEach(id => {
     document.getElementById(id).addEventListener('change', applyFilters);
@@ -886,17 +895,21 @@ function resetFilters() {
 // KPIs
 // ============================================================
 function updateKPIs() {
-  const total  = filteredOpps.length;
-  const active = filteredOpps.filter(o => o.status === 'Có nhu cầu').length;
-  const won    = filteredOpps.filter(o => o.status === 'Đã ký HĐ').length;
-  const done   = filteredOpps.filter(o => o.status === 'Đã làm xong').length;
-  const rate   = total > 0 ? Math.round(won / total * 100) : 0;
+  const total    = filteredOpps.length;
+  const active   = filteredOpps.filter(o => o.status === 'Có nhu cầu').length;
+  const won      = filteredOpps.filter(o => o.status === 'Đã ký HĐ').length;
+  const done     = filteredOpps.filter(o => o.status === 'Đã làm xong').length;
+  const pipeline = filteredOpps
+    .filter(o => o.status === 'Có nhu cầu')
+    .reduce((s, o) => s + (o.amount || 0), 0);
 
   animateNum('k-total',  total);
   animateNum('k-active', active);
   animateNum('k-won',    won);
   animateNum('k-done',   done);
-  document.getElementById('k-rate').textContent = rate + '%';
+  // Pipeline: show in Triệu
+  const pEl = document.getElementById('k-pipeline');
+  if (pEl) pEl.textContent = pipeline >= 1e6 ? (pipeline/1e6).toFixed(0) + ' Tr' : pipeline.toLocaleString('vi-VN');
 }
 function animateNum(id, target) {
   const el = document.getElementById(id);
@@ -1009,15 +1022,19 @@ function renderCharts() {
     }
   });
 
-  // ── Chart 4: Sales PIC Bar ─────────────────────────────
+  // ── Chart 4: Sales PIC Bar (use real names) ───────────────
   destroyChart('chartPIC');
   const pics = [...new Set(filteredOpps.map(o => o.salesPic || 'N/A'))].sort();
+  const picLabels = pics.map(p => {
+    const o = filteredOpps.find(x => x.salesPic === p);
+    return o ? (o.salesPicName || p) : p;
+  });
   const picWon  = pics.map(p => filteredOpps.filter(o => o.salesPic === p && o.status === 'Đã ký HĐ').length);
   const picOther= pics.map(p => filteredOpps.filter(o => o.salesPic === p && o.status !== 'Đã ký HĐ').length);
   charts['chartPIC'] = new Chart(document.getElementById('chartPIC'), {
     type: 'bar',
     data: {
-      labels: pics,
+      labels: picLabels,
       datasets: [
         { label: 'Đã ký HĐ', data: picWon,   backgroundColor: '#1E7C34', borderRadius: 4, stack: 'a' },
         { label: 'Khác',      data: picOther, backgroundColor: '#D1E7D8', borderRadius: 4, stack: 'a' }
@@ -1060,7 +1077,7 @@ function renderTable() {
       <td style="font-size:12px">${esc(o.source)}</td>
       <td>
         <span style="background:#E8F5EC;color:var(--tp-primary);padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">
-          ${esc(o.salesPic)}
+          ${esc(o.salesPicName || o.salesPic)}
         </span>
       </td>
       <td>${scoreBadge(o.score)}</td>
@@ -1092,7 +1109,7 @@ function openPanel(oppId) {
   document.getElementById('p-score').innerHTML    = scoreBadge(o.score);
   document.getElementById('p-category').textContent = o.category || '—';
   document.getElementById('p-source').textContent   = o.source   || '—';
-  document.getElementById('p-pic').textContent      = o.salesPic || '—';
+  document.getElementById('p-pic').textContent = (o.salesPicName || o.salesPic) || '—';
   document.getElementById('p-zone').textContent     = o.zone     || '—';
   document.getElementById('p-phone').textContent    = o.phone    || '—';
   document.getElementById('p-address').textContent  = o.address  || '—';
