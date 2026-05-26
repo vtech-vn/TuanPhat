@@ -17,9 +17,7 @@ function getCrmData() {
   const empRows = readSheet(ss, 'Employees');
   empRows.forEach(function(emp) {
     const id   = String(emp['Employee_ID'] || '').trim();
-    const raw  = String(emp['Name'] || '').trim();
-    // Format: "NV05-Đào Thị Mai Trâm " → strip the "NVxx-" prefix
-    const name = raw.replace(/^NV\d+[-–]\s*/, '').trim() || raw;
+    const name = String(emp['Name'] || '').trim(); // full name, no stripping
     if (id) empMap[id] = name;
   });
 
@@ -64,9 +62,10 @@ function getCrmData() {
       source:        opp['Source']          || '',
       score:         opp['Score']           || '',
       salesPic:      picId,
-      salesPicName:  empMap[picId] || picId, // real name from Employees sheet
-      amount:        parseFloat(opp['Amount']) || 0, // pipeline value
+      salesPicName:  empMap[picId] || picId,
+      amount:        parseFloat(opp['Amount']) || 0,
       status:        opp['Status']           || '',
+      creationDate:  opp['Creation_Date']    || '',
       lastUpdate:    opp['Last_Update_Date'] || '',
       lastUpdatedBy: opp['Last_Updated_By']  || '',
       activities:    activities,

@@ -436,6 +436,9 @@ tr.opp-row.selected { background: #E8F5EC; }
   .nav-email { display: none; }
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css">
 </head>
 <body>
 
@@ -485,14 +488,10 @@ tr.opp-row.selected { background: #E8F5EC; }
 <!-- ── Top Nav ────────────────────────────────────────────── -->
 <nav class="topnav">
   <div class="nav-logo">
-    <div class="nav-logo-icon">TP</div>
-    <span class="nav-brand">Tuấn Phát</span>
+    <img src="logo.png" alt="Tuấn Phát" style="height:38px;width:auto;object-fit:contain;">
   </div>
   <span class="nav-badge">CRM Dashboard</span>
   <div class="nav-spacer"></div>
-  <a href="../GitHub_Dashboard/" class="nav-link">
-    <i class="fa-solid fa-chart-line"></i> Financial
-  </a>
   <div class="nav-user" onclick="logout()">
     <div class="nav-avatar" id="user-initial">U</div>
     <span class="nav-email" id="user-email-short">User</span>
@@ -502,7 +501,12 @@ tr.opp-row.selected { background: #E8F5EC; }
 
 <!-- ── Filter Bar ─────────────────────────────────────────── -->
 <div class="filter-bar">
-  <span class="filter-label">Lọc:</span>
+  <span class="filter-label">Ngày tạo:</span>
+  <div class="search-wrap" style="max-width:240px">
+    <i class="fa-regular fa-calendar search-icon"></i>
+    <input class="search-input" id="f-daterange" type="text" placeholder="Từ ngày — Đến ngày" readonly>
+  </div>
+  <span class="filter-label" style="margin-left:4px">Lọc:</span>
   <select class="filter-select" id="f-zone">
     <option value="">Tất cả khu vực</option>
   </select>
@@ -513,7 +517,7 @@ tr.opp-row.selected { background: #E8F5EC; }
     <option value="">Tất cả nguồn</option>
   </select>
   <select class="filter-select" id="f-pic">
-    <option value="">Tất cả NV</option>
+    <option value="">Tất cả nhân viên</option>
   </select>
   <select class="filter-select" id="f-score">
     <option value="">Tất cả tiềm năng</option>
@@ -600,12 +604,23 @@ tr.opp-row.selected { background: #E8F5EC; }
         Cơ hội kinh doanh
         <span class="table-count" id="tbl-count">0</span>
       </div>
-      <div class="status-tabs">
-        <button class="status-tab active" data-status="all" onclick="setStatusTab(this)">Tất cả</button>
-        <button class="status-tab" data-status="active"  onclick="setStatusTab(this)">Có nhu cầu</button>
-        <button class="status-tab" data-status="won"     onclick="setStatusTab(this)">Đã ký HĐ</button>
-        <button class="status-tab" data-status="done"    onclick="setStatusTab(this)">Đã làm xong</button>
-        <button class="status-tab" data-status="lost"    onclick="setStatusTab(this)">Không có nhu cầu</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="status-tabs">
+          <button class="status-tab active" data-status="all" onclick="setStatusTab(this)">Tất cả</button>
+          <button class="status-tab" data-status="active"  onclick="setStatusTab(this)">Có nhu cầu</button>
+          <button class="status-tab" data-status="won"     onclick="setStatusTab(this)">Đã ký HĐ</button>
+          <button class="status-tab" data-status="done"    onclick="setStatusTab(this)">Đã làm xong</button>
+          <button class="status-tab" data-status="lost"    onclick="setStatusTab(this)">Không có nhu cầu</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tp-text-muted)">
+          Hiển thị:
+          <select class="filter-select" id="page-size" style="min-width:80px;padding:5px 10px" onchange="applyFilters()">
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="9999">Full</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="table-wrap">
@@ -685,8 +700,9 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiQ1jb0Di4CV3C
 // ============================================================
 let allOpps = [];
 let filteredOpps = [];
-let activeStatusTab = 'all';
 let charts = {};
+let dateFilterStart = null;
+let dateFilterEnd   = null;
 
 // ============================================================
 // STATUS HELPERS
@@ -811,14 +827,12 @@ function setupFilterOptions() {
   const zones    = [...new Set(allOpps.map(o => o.zone).filter(Boolean))].sort();
   const cats     = [...new Set(allOpps.map(o => o.category).filter(Boolean))].sort();
   const sources  = [...new Set(allOpps.map(o => o.source).filter(Boolean))].sort();
-  // Build unique name list (display salesPicName but filter by salesPic ID)
-  const picMap = {}; // picId → picName
+  const picMap = {};
   allOpps.forEach(o => { if (o.salesPic) picMap[o.salesPic] = o.salesPicName || o.salesPic; });
 
   fillSelect('f-zone',     zones,   'Tất cả khu vực');
   fillSelect('f-category', cats,    'Tất cả loại');
   fillSelect('f-source',   sources, 'Tất cả nguồn');
-  // Fill PIC select with name as text but ID as value
   const picSel = document.getElementById('f-pic');
   picSel.innerHTML = '<option value="">Tất cả nhân viên</option>';
   Object.entries(picMap).sort((a,b) => a[1].localeCompare(b[1])).forEach(([id, name]) => {
@@ -830,7 +844,38 @@ function setupFilterOptions() {
   ['f-zone','f-category','f-source','f-pic','f-score'].forEach(id => {
     document.getElementById(id).addEventListener('change', applyFilters);
   });
+
+  // Date range picker
+  $('#f-daterange').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+      format: 'DD/MM/YYYY',
+      applyLabel: 'Áp dụng', cancelLabel: 'Xóa',
+      customRangeLabel: 'Tùy chọn',
+      daysOfWeek: ['CN','T2','T3','T4','T5','T6','T7'],
+      monthNames: ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6',
+                   'Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12']
+    },
+    ranges: {
+      'Tất cả': [moment('2020-01-01'), moment('2099-12-31')],
+      'Tháng này':  [moment().startOf('month'), moment().endOf('month')],
+      'Quý này':    [moment().startOf('quarter'), moment().endOf('quarter')],
+      'Năm nay':    [moment().startOf('year'), moment().endOf('year')],
+      'Năm trước':  [moment().subtract(1,'year').startOf('year'), moment().subtract(1,'year').endOf('year')]
+    }
+  }).on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' — ' + picker.endDate.format('DD/MM/YYYY'));
+    dateFilterStart = picker.startDate;
+    dateFilterEnd   = picker.endDate;
+    applyFilters();
+  }).on('cancel.daterangepicker', function() {
+    $(this).val('');
+    dateFilterStart = null;
+    dateFilterEnd   = null;
+    applyFilters();
+  });
 }
+
 function fillSelect(id, values, placeholder) {
   const sel = document.getElementById(id);
   sel.innerHTML = `<option value="">${placeholder}</option>`;
@@ -860,6 +905,11 @@ function applyFilters() {
   const q       = document.getElementById('search-input').value.toLowerCase();
 
   filteredOpps = allOpps.filter(o => {
+    // Date range filter (by Creation_Date)
+    if (dateFilterStart && dateFilterEnd && o.creationDate) {
+      const cd = moment(o.creationDate);
+      if (cd.isValid() && !cd.isBetween(dateFilterStart, dateFilterEnd, 'day', '[]')) return false;
+    }
     if (zone   && o.zone     !== zone)   return false;
     if (cat    && o.category !== cat)    return false;
     if (source && o.source   !== source) return false;
@@ -885,11 +935,15 @@ function resetFilters() {
     document.getElementById(id).value = '';
   });
   document.getElementById('search-input').value = '';
+  document.getElementById('f-daterange').value = '';
+  dateFilterStart = null;
+  dateFilterEnd   = null;
   document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.status-tab[data-status="all"]').classList.add('active');
   statusTabFilter = 'all';
   applyFilters();
 }
+
 
 // ============================================================
 // KPIs
@@ -907,9 +961,9 @@ function updateKPIs() {
   animateNum('k-active', active);
   animateNum('k-won',    won);
   animateNum('k-done',   done);
-  // Pipeline: show in Triệu
+  // Pipeline: full number with Vietnamese dot separator
   const pEl = document.getElementById('k-pipeline');
-  if (pEl) pEl.textContent = pipeline >= 1e6 ? (pipeline/1e6).toFixed(0) + ' Tr' : pipeline.toLocaleString('vi-VN');
+  if (pEl) pEl.textContent = Math.round(pipeline).toLocaleString('vi-VN');
 }
 function animateNum(id, target) {
   const el = document.getElementById(id);
