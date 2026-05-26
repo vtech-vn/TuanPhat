@@ -50,6 +50,7 @@ function authorizeApp() {
 
 /**
  * Verify session từ request, trả về email nếu hợp lệ, null nếu không
+ * Session không có TTL – tồn tại cho đến khi user đăng xuất hoặc xóa thủ công
  */
 function verifySession(session) {
   if (!session) return null;
@@ -57,10 +58,6 @@ function verifySession(session) {
   if (!raw) return null;
   try {
     const data = JSON.parse(raw);
-    if (data.expiresAt && Date.now() > data.expiresAt) {
-      PropertiesService.getScriptProperties().deleteProperty('SESSION_' + session);
-      return null;
-    }
     return data.email || null;
   } catch (e) {
     return null;
@@ -123,11 +120,11 @@ function handleVerifyOtp(e) {
   // Xóa OTP đã dùng
   PropertiesService.getScriptProperties().deleteProperty('OTP_' + email);
 
-  // Tạo session với TTL 8 tiếng
+  // Tạo session vĩnh viễn (không TTL – như HiepLuc)
   const sessionId = Utilities.getUuid();
   const sessionData = {
     email: email,
-    expiresAt: Date.now() + 8 * 3600 * 1000
+    createdAt: Date.now()
   };
   PropertiesService.getScriptProperties().setProperty('SESSION_' + sessionId, JSON.stringify(sessionData));
 
@@ -140,7 +137,7 @@ function handleVerifyOtp(e) {
 function handleDashboardData(e) {
   const email = verifySession(e.parameter.session);
   if (!email) {
-    return jsonResponse({ success: false, error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' });
+    return jsonResponse({ success: false, error: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' });
   }
   return ContentService.createTextOutput(getDashboardData()).setMimeType(ContentService.MimeType.JSON);
 }
