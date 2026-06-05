@@ -49,16 +49,22 @@ function getQuotePrintPage(e) {
   var quote = null;
   for (var i = 1; i < hdData.length; i++) {
     if (hdData[i][0] == quoteId) {
+      // Col index sau khi thêm Opp_ID ở col[5]:
+      // [0]=Quote_ID [1]=Customer_ID [2]=Quote_Number [3]=Quote_Date
+      // [4]=Amount [5]=Opp_ID [6]=Quote_Name [7]=Status
+      // [8]=Last Updated By [9]=Last Update Date [10]=Project_Name
+      // [11]=Project_Address [12]=VAT_Rate [13]=VAT_Amount
+      // [14]=Discount(%) [15]=Discount_Amount
       quote = { 
         id: hdData[i][0], 
-        project: hdData[i][9],
-        address: hdData[i][10],
-        quoteName: hdData[i][5],
+        project: hdData[i][10],
+        address: hdData[i][11],
+        quoteName: hdData[i][6],
         total: hdData[i][4] || 0,
-        vatRate: hdData[i][11] || 0,
-        vatAmount: hdData[i][12] || 0,
-        discountRate: hdData[i][13] || 0,
-        discountAmount: hdData[i][14] || 0
+        vatRate: hdData[i][12] || 0,
+        vatAmount: hdData[i][13] || 0,
+        discountRate: hdData[i][14] || 0,
+        discountAmount: hdData[i][15] || 0
       };
       break;
     }
