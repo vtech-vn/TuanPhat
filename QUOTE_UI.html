@@ -94,13 +94,20 @@
   </div>
 
   <div class="content-area">
-    <? for(var sec in sections){ ?>
+    <? for(var secKey in sections){ 
+         var secObj = sections[secKey];
+         var secName = secObj.name;
+         var discountRate = secObj.discountRate;
+         var secTotal = secObj.total;
+         var discountAmount = secObj.discountAmount;
+         var secItems = secObj.items;
+    ?>
     <div style="margin-bottom:18px;">
       <div class="section-header">
         <div class="section-icon">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11a2 2 0 012-2h16a2 2 0 012 2v5H2v-5z"/><path d="M6 20v-3M18 20v-3"/></svg>
         </div>
-        <div class="section-title"><?= sec ?></div>
+        <div class="section-title"><?= secName ?></div>
       </div>
       <div class="table-wrapper">
         <table>
@@ -117,11 +124,11 @@
             <th style="width:<?= widths[9] ?>">Ghi chú</th>
           </tr></thead>
           <tbody>
-            <? var secTotal=0;var rowNum=0; ?>
-            <? for(var i=0;i<sections[sec].length;i++){
-                 var r=sections[sec][i];
+            <? var rowNum=0; ?>
+            <? for(var i=0;i<secItems.length;i++){
+                 var r=secItems[i];
                  var _d=(r.description||'').toString().replace(/\s/g,'');
-                 if(_d!==''){rowNum++;secTotal+=Number(r.amount)||0; ?>
+                 if(_d!==''){rowNum++; ?>
             <tr>
               <td class="center" style="color:#bbb;font-size:12px;"><?= rowNum ?></td>
               <td style="font-weight:700;color:#1a1a1a;padding-left:10px;"><?= r.description ?></td>
@@ -141,12 +148,32 @@
               <td colspan="7">
                 <div class="total-label-cell">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="#1a5c38"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20C19 20 22 3 22 3c-1 2-8 2-8 2s4-1 5 4c-3.52-1-6-1-8.33 3.21C8.4 12 8 12.5 8 14H6C6 8 8 5 8 5s-6 3-6 9c0 3 1.5 5 3.82 6.34A12.25 12.25 0 0117 8z"/></svg>
-                  TỔNG CỘNG <?= sec ?>:
+                  TỔNG CỘNG <?= secName ?>:
                 </div>
               </td>
               <td class="right" style="font-size:14px;font-weight:800;color:var(--green);"><?= secTotal.toLocaleString('vi-VN') ?></td>
               <td colspan="2"></td>
             </tr>
+            <? if(discountRate > 0) { ?>
+            <tr class="total-row" style="background:#fff;">
+              <td colspan="7">
+                <div class="total-label-cell" style="color:var(--muted); font-size:12px; font-weight:600;">
+                  Chiết khấu <?= discountRate ?>%:
+                </div>
+              </td>
+              <td class="right" style="font-size:13px;font-weight:700;color:#d9534f;">-<?= discountAmount.toLocaleString('vi-VN') ?></td>
+              <td colspan="2"></td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="7">
+                <div class="total-label-cell">
+                  Tổng tiền sau chiết khấu:
+                </div>
+              </td>
+              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);"><?= (secTotal - discountAmount).toLocaleString('vi-VN') ?></td>
+              <td colspan="2"></td>
+            </tr>
+            <? } ?>
           </tbody>
         </table>
       </div>
@@ -170,17 +197,17 @@
       <div class="wallet-circle"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a2 2 0 000 4h4v-4z"/></svg></div>
       <div class="footer-total-text">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng nội thất:</div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng tiền:</div>
           <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= Number(quote.total).toLocaleString('vi-VN') ?> đ</div>
         </div>
-        <? if(quote.discountRate > 0 || quote.discountAmount > 0) { ?>
+        <? if(quote.discountAmount > 0) { ?>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Chiết khấu <?= quote.discountRate||0 ?>%:</div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng chiết khấu:</div>
           <div style="font-weight:700;color:rgba(255,255,255,0.9);">-<?= Number(quote.discountAmount||0).toLocaleString('vi-VN') ?> đ</div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.2);">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng tiền:</div>
-          <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= (Number(quote.total) - Number(quote.discountAmount||0)).toLocaleString('vi-VN') ?> đ</div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng tiền sau CK:</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);"><?= Number(quote.sumAfterDiscount||0).toLocaleString('vi-VN') ?> đ</div>
         </div>
         <? } ?>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.2);">
@@ -189,7 +216,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <div class="total-label-right" style="margin-bottom:0;font-size:13px;font-weight:800;">Tổng tiền có VAT:</div>
-          <div class="total-amount" style="font-size:17px;"><?= (Number(quote.total) - Number(quote.discountAmount||0) + Number(quote.vatAmount||0)).toLocaleString('vi-VN') ?> đ</div>
+          <div class="total-amount" style="font-size:17px;"><?= Number(quote.finalTotal||0).toLocaleString('vi-VN') ?> đ</div>
         </div>
       </div>
     </div>
@@ -211,13 +238,19 @@ var exportQuote={
   total: <?= Number(quote.total)||0 ?>,
   vatRate: <?= Number(quote.vatRate)||0 ?>,
   vatAmount: <?= Number(quote.vatAmount)||0 ?>,
-  discountRate: <?= Number(quote.discountRate)||0 ?>,
-  discountAmount: <?= Number(quote.discountAmount)||0 ?>
+  discountAmount: <?= Number(quote.discountAmount)||0 ?>,
+  sumAfterDiscount: <?= Number(quote.sumAfterDiscount)||0 ?>,
+  finalTotal: <?= Number(quote.finalTotal)||0 ?>
 };
 var exportSections={};
-<? for(var sec in sections){ ?>
-exportSections[<?!= JSON.stringify(sec) ?>]=[
-  <? for(var ei=0;ei<sections[sec].length;ei++){var er=sections[sec][ei];var _ed=(er.description||'').toString().replace(/\s/g,'');if(_ed!==''){?>
+<? for(var secKey in sections){ var secObj=sections[secKey]; ?>
+exportSections[<?!= JSON.stringify(secKey) ?>]={
+  name: <?!= JSON.stringify(secObj.name||'') ?>,
+  discountRate: <?= Number(secObj.discountRate)||0 ?>,
+  discountAmount: <?= Number(secObj.discountAmount)||0 ?>,
+  total: <?= Number(secObj.total)||0 ?>,
+  items: [
+  <? for(var ei=0;ei<secObj.items.length;ei++){var er=secObj.items[ei];var _ed=(er.description||'').toString().replace(/\s/g,'');if(_ed!==''){?>
   {
     description: <?!= JSON.stringify(er.description||'') ?>,
     l: <?!= JSON.stringify(String(er.l||'')) ?>,
@@ -231,7 +264,8 @@ exportSections[<?!= JSON.stringify(sec) ?>]=[
     note: <?!= JSON.stringify((er.note||'').replace(/<br>/g,'\n')) ?>
   },
   <? }}?>
-];
+  ]
+};
 <? } ?>
 </script>
 
@@ -363,59 +397,74 @@ async function exportExcel(){
     mRow('I','Địa chỉ: '+exportQuote.address,{font:{bold:true,size:13,color:{argb:'FF666666'}},align:'center'});
     ws.getRow(R).height=10;R++;
 
-    var grandTotal=0;
-    for(var secName in exportSections){
+    var grandTotal=0,grandDiscount=0;
+    for(var secKey in exportSections){
+      var secObj=exportSections[secKey];
+      var secName=secObj.name;
+      var secDiscountRate=secObj.discountRate||0;
+      var secDiscountAmt=secObj.discountAmount||0;
+      var secTotal=secObj.total||0;
+      var items=secObj.items;
+      grandTotal+=secTotal;
+      grandDiscount+=secDiscountAmt;
       ws.mergeCells('A'+R+':I'+R);var ch=ws.getCell('A'+R);ch.value=secName;ch.font={bold:true,size:12,color:{argb:WHITE}};ch.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};ch.alignment={horizontal:'left',vertical:'middle',indent:1};ws.getRow(R).height=26;R++;
       var hRow=ws.getRow(R);hRow.values=['STT','HẠNG MỤC','KÍCH THƯỚC (MM)','ĐVT','KL','SL','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ'];
       hRow.eachCell(function(cell){cell.font={bold:true,color:{argb:WHITE},size:10};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2d7a50'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=bT;});ws.getRow(R).height=28;R++;
-      var items=exportSections[secName],secTotal=0;
       for(var j=0;j<items.length;j++){
-        var r2=items[j],amt=Number(r2.amount)||0;secTotal+=amt;grandTotal+=amt;
+        var r2=items[j],amt=Number(r2.amount)||0;
         var klVal = (r2.kl && !isNaN(r2.kl)) ? Number(r2.kl) : r2.kl;
         var qtyVal = (r2.qty && !isNaN(r2.qty)) ? Number(r2.qty) : r2.qty;
-
         var dRow=ws.getRow(R);dRow.values=[j+1,r2.description,[r2.l,r2.w,r2.h].filter(Boolean).join(' × '),r2.uom,klVal,qtyVal,Number(r2.price)||0,amt,r2.note||''];
-        
         dRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};
         dRow.getCell(2).font={bold:true};dRow.getCell(2).alignment={vertical:'middle',wrapText:true};
-        
         dRow.getCell(3).alignment={horizontal:'center',vertical:'middle',wrapText:true};
         dRow.getCell(4).alignment={horizontal:'center',vertical:'middle'};
         dRow.getCell(5).alignment={horizontal:'center',vertical:'middle'};
         dRow.getCell(6).alignment={horizontal:'center',vertical:'middle'};
-
         dRow.getCell(7).numFmt='#,##0';dRow.getCell(7).alignment={horizontal:'right',vertical:'middle'};
         dRow.getCell(8).numFmt='#,##0';dRow.getCell(8).font={bold:true};dRow.getCell(8).alignment={horizontal:'right',vertical:'middle'};
         dRow.getCell(9).alignment={vertical:'middle',wrapText:true,horizontal:'justify'};
         dRow.eachCell(function(cell){cell.border=bT;});ws.getRow(R).height=44;R++;
       }
+      // Tổng cộng section
       ws.mergeCells('A'+R+':G'+R);var stL=ws.getCell('A'+R);stL.value='TỔNG CỘNG '+secName+':';stL.font={bold:true,size:11};stL.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stL.alignment={horizontal:'right',vertical:'middle'};
       var stV=ws.getCell('H'+R);stV.value=secTotal;stV.numFmt='#,##0';stV.font={bold:true,size:12,color:{argb:GREEN}};stV.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stV.alignment={horizontal:'right',vertical:'middle'};
       ws.getCell('I'+R).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};ws.getRow(R).height=24;R++;
+      // Chiết khấu section (nếu có)
+      if(secDiscountRate>0){
+        ws.mergeCells('A'+R+':G'+R);var ckL=ws.getCell('A'+R);ckL.value='Chiết khấu '+secDiscountRate+'%:';ckL.font={bold:true,size:11,color:{argb:'FFd9534f'}};ckL.alignment={horizontal:'right',vertical:'middle'};
+        var ckV=ws.getCell('H'+R);ckV.value=-secDiscountAmt;ckV.numFmt='#,##0';ckV.font={bold:true,size:12,color:{argb:'FFd9534f'}};ckV.alignment={horizontal:'right',vertical:'middle'};
+        ws.getRow(R).height=20;R++;
+        ws.mergeCells('A'+R+':G'+R);var aftL=ws.getCell('A'+R);aftL.value='Tổng sau chiết khấu:';aftL.font={bold:true,size:11,color:{argb:GREEN}};aftL.alignment={horizontal:'right',vertical:'middle'};
+        var aftV=ws.getCell('H'+R);aftV.value=secTotal-secDiscountAmt;aftV.numFmt='#,##0';aftV.font={bold:true,size:12,color:{argb:GREEN}};aftV.alignment={horizontal:'right',vertical:'middle'};
+        ws.getRow(R).height=20;R++;
+      }
       ws.getRow(R).height=8;R++;
     }
     ws.getRow(R).height=6;R++;
-    
-    ws.mergeCells('A'+R+':G'+R);var gtL1=ws.getCell('A'+R);gtL1.value='Tổng nội thất:';gtL1.font={bold:true,size:11,color:{argb:'FF444444'}};gtL1.alignment={horizontal:'right',vertical:'middle'};
+    var grandAfterDiscount=grandTotal-grandDiscount;
+    var finalVat=exportQuote.vatAmount||0;
+    var finalTotal=grandAfterDiscount+finalVat;
+
+    ws.mergeCells('A'+R+':G'+R);var gtL1=ws.getCell('A'+R);gtL1.value='Tổng tiền:';gtL1.font={bold:true,size:11,color:{argb:'FF444444'}};gtL1.alignment={horizontal:'right',vertical:'middle'};
     var gtV1=ws.getCell('H'+R);gtV1.value=grandTotal;gtV1.numFmt='#,##0';gtV1.font={bold:true,size:12,color:{argb:'FF444444'}};gtV1.alignment={horizontal:'right',vertical:'middle'};
     ws.getRow(R).height=20;R++;
 
-    if (exportQuote.discountRate > 0 || exportQuote.discountAmount > 0) {
-      ws.mergeCells('A'+R+':G'+R);var gtL2=ws.getCell('A'+R);gtL2.value='Chiết khấu ' + (exportQuote.discountRate||0) + '%:';gtL2.font={bold:true,size:11,color:{argb:'FF444444'}};gtL2.alignment={horizontal:'right',vertical:'middle'};
-      var gtV2=ws.getCell('H'+R);gtV2.value= -1 * (exportQuote.discountAmount||0);gtV2.numFmt='#,##0';gtV2.font={bold:true,size:12,color:{argb:'FF444444'}};gtV2.alignment={horizontal:'right',vertical:'middle'};
+    if (grandDiscount > 0) {
+      ws.mergeCells('A'+R+':G'+R);var gtL2=ws.getCell('A'+R);gtL2.value='Tổng chiết khấu:';gtL2.font={bold:true,size:11,color:{argb:'FF444444'}};gtL2.alignment={horizontal:'right',vertical:'middle'};
+      var gtV2=ws.getCell('H'+R);gtV2.value=-grandDiscount;gtV2.numFmt='#,##0';gtV2.font={bold:true,size:12,color:{argb:'FF444444'}};gtV2.alignment={horizontal:'right',vertical:'middle'};
       ws.getRow(R).height=20;R++;
-
-      ws.mergeCells('A'+R+':G'+R);var gtL3=ws.getCell('A'+R);gtL3.value='Tổng tiền:';gtL3.font={bold:true,size:11,color:{argb:'FF444444'}};gtL3.alignment={horizontal:'right',vertical:'middle'};
-      var gtV3=ws.getCell('H'+R);gtV3.value=grandTotal - (exportQuote.discountAmount||0);gtV3.numFmt='#,##0';gtV3.font={bold:true,size:12,color:{argb:'FF444444'}};gtV3.alignment={horizontal:'right',vertical:'middle'};
+      ws.mergeCells('A'+R+':G'+R);var gtL3=ws.getCell('A'+R);gtL3.value='Tổng tiền sau CK:';gtL3.font={bold:true,size:11,color:{argb:'FF444444'}};gtL3.alignment={horizontal:'right',vertical:'middle'};
+      var gtV3=ws.getCell('H'+R);gtV3.value=grandAfterDiscount;gtV3.numFmt='#,##0';gtV3.font={bold:true,size:12,color:{argb:'FF444444'}};gtV3.alignment={horizontal:'right',vertical:'middle'};
       ws.getRow(R).height=20;R++;
     }
     
     ws.mergeCells('A'+R+':G'+R);var gtL4=ws.getCell('A'+R);gtL4.value='VAT ' + (exportQuote.vatRate||0) + '%:';gtL4.font={bold:true,size:11,color:{argb:'FF444444'}};gtL4.alignment={horizontal:'right',vertical:'middle'};
-    var gtV4=ws.getCell('H'+R);gtV4.value=exportQuote.vatAmount||0;gtV4.numFmt='#,##0';gtV4.font={bold:true,size:12,color:{argb:'FF444444'}};gtV4.alignment={horizontal:'right',vertical:'middle'};
+    var gtV4=ws.getCell('H'+R);gtV4.value=finalVat;gtV4.numFmt='#,##0';gtV4.font={bold:true,size:12,color:{argb:'FF444444'}};gtV4.alignment={horizontal:'right',vertical:'middle'};
     ws.getRow(R).height=20;R++;
     
     ws.mergeCells('A'+R+':G'+R);var gtL5=ws.getCell('A'+R);gtL5.value='TỔNG TIỀN CÓ VAT:';gtL5.font={bold:true,size:13,color:{argb:WHITE}};gtL5.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};gtL5.alignment={horizontal:'right',vertical:'middle',indent:1};
-    var gtV5=ws.getCell('H'+R);gtV5.value=grandTotal - (exportQuote.discountAmount||0) + (exportQuote.vatAmount||0);gtV5.numFmt='#,##0';gtV5.font={bold:true,size:15,color:{argb:GOLD}};gtV5.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};gtV5.alignment={horizontal:'right',vertical:'middle'};
+    var gtV5=ws.getCell('H'+R);gtV5.value=finalTotal;gtV5.numFmt='#,##0';gtV5.font={bold:true,size:15,color:{argb:GOLD}};gtV5.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};gtV5.alignment={horizontal:'right',vertical:'middle'};
     ws.getCell('I'+R).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};ws.getRow(R).height=34;R++;
     
     ws.getRow(R).height=8;R++;

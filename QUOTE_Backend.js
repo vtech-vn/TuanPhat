@@ -75,11 +75,24 @@ function getQuotePrintPage(e) {
   var lineData = ss.getSheetByName("Quote_Line").getDataRange().getValues();
   var sections = {};
   var imageCache = {}; 
+  var sumTotal = 0;
+  var sumDiscount = 0;
 
   for (var j = 1; j < lineData.length; j++) {
     if (lineData[j][1] == quoteId) {
       var sec = lineData[j][2] || "Khác";
-      if (!sections[sec]) sections[sec] = [];
+      var discountRate = parseFloat(lineData[j][15]) || 0;
+      var secKey = sec + "||" + discountRate;
+      
+      if (!sections[secKey]) {
+        sections[secKey] = {
+          name: sec,
+          discountRate: discountRate,
+          items: [],
+          total: 0,
+          discountAmount: 0
+        };
+      }
       
       var imgUrl = lineData[j][14] || "";
       var base64Img = "";
@@ -106,7 +119,12 @@ function getQuotePrintPage(e) {
         }
       }
       
-      sections[sec].push({
+      var price = parseFloat(lineData[j][11]) || 0;
+      var amount = parseFloat(lineData[j][12]) || 0;
+      sections[secKey].total += amount;
+      sumTotal += amount;
+      
+      sections[secKey].items.push({
         description: lineData[j][4] || "", 
         l: lineData[j][5] || "",
         w: lineData[j][6] || "",
@@ -114,13 +132,29 @@ function getQuotePrintPage(e) {
         uom: lineData[j][8] || "",
         kl: lineData[j][9] || "",
         qty: lineData[j][10] || "",
-        price: lineData[j][11] || 0,
-        amount: lineData[j][12] || 0,
+        price: price,
+        amount: amount,
         note: lineData[j][13] || "",
         img: base64Img
       });
     }
   }
+
+  for (var key in sections) {
+    var secObj = sections[key];
+    secObj.discountAmount = secObj.total * (secObj.discountRate / 100);
+    sumDiscount += secObj.discountAmount;
+  }
+
+  var sumAfterDiscount = sumTotal - sumDiscount;
+  var vatRate = quote.vatRate || 0;
+  var vatAmount = sumAfterDiscount * (vatRate / 100);
+  
+  quote.total = sumTotal;
+  quote.discountAmount = sumDiscount;
+  quote.vatAmount = vatAmount;
+  quote.sumAfterDiscount = sumAfterDiscount;
+  quote.finalTotal = sumAfterDiscount + vatAmount;
 
   // 4. Cấu hình độ rộng cột
   var widths = ["3%","25%","12%","4%","4%","3%","8%","10%","12%","19%"];
