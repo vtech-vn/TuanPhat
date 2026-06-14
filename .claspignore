@@ -2,3 +2,4 @@ backup/
 *.docx
 *.png
 docs/
+src_temp/

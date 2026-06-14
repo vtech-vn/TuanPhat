@@ -102,7 +102,7 @@
   </div>
 
   <div class="content-area">
-    <template v-for="(group, groupKey) in discountGroups" :key="groupKey">
+    <template v-for="(group, groupKey) in discountGroups">
       <div v-for="(secObj, secName) in group.sections" :key="secName" style="margin-bottom:18px;">
         <div class="section-header">
           <div class="section-icon">
@@ -245,8 +245,7 @@
     </div>
   </div>
 </div>
-
-
+</div>
 
 <script>
 /* ===== HELPER TÊN FILE ===== */
@@ -449,8 +448,6 @@ async function exportExcel(){
   btns.forEach(b=>{b.disabled=false;b.style.opacity='1';});btns[1].innerText="⬇ TẢI EXCEL";
 }
 </script>
-  </div>
-</div>
 
 <script>
 new Vue({
