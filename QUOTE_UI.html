@@ -94,13 +94,15 @@
   </div>
 
   <div class="content-area">
-    <? for(var secKey in sections){ 
-         var secObj = sections[secKey];
-         var secName = secObj.name;
-         var discountRate = secObj.discountRate;
-         var secTotal = secObj.total;
-         var discountAmount = secObj.discountAmount;
-         var secItems = secObj.items;
+    <? for(var groupKey in discountGroups){ 
+         var group = discountGroups[groupKey];
+         var discountRate = group.discountRate;
+         var groupTotal = group.total;
+         var groupDiscountAmount = group.discountAmount;
+         for(var secName in group.sections) {
+           var secObj = group.sections[secName];
+           var secTotal = secObj.total;
+           var secItems = secObj.items;
     ?>
     <div style="margin-bottom:18px;">
       <div class="section-header">
@@ -154,31 +156,62 @@
               <td class="right" style="font-size:14px;font-weight:800;color:var(--green);"><?= secTotal.toLocaleString('vi-VN') ?></td>
               <td colspan="2"></td>
             </tr>
-            <? if(discountRate > 0) { ?>
-            <tr class="total-row" style="background:#fff;">
-              <td colspan="7">
-                <div class="total-label-cell" style="color:var(--muted); font-size:12px; font-weight:600;">
-                  Chiết khấu <?= discountRate ?>%:
-                </div>
-              </td>
-              <td class="right" style="font-size:13px;font-weight:700;color:#d9534f;">-<?= discountAmount.toLocaleString('vi-VN') ?></td>
-              <td colspan="2"></td>
             </tr>
-            <tr class="total-row">
-              <td colspan="7">
-                <div class="total-label-cell">
-                  Tổng tiền sau chiết khấu:
-                </div>
-              </td>
-              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);"><?= (secTotal - discountAmount).toLocaleString('vi-VN') ?></td>
-              <td colspan="2"></td>
-            </tr>
-            <? } ?>
           </tbody>
         </table>
       </div>
     </div>
+    <? } // end sections loop ?>
+    
+    <? if(discountRate > 0) { ?>
+    <div class="table-wrapper" style="margin-bottom:25px; margin-top:-10px; border-top-left-radius:0; border-top-right-radius:0;">
+      <table>
+        <colgroup>
+           <col style="width:<?= widths[0] ?>">
+           <col style="width:<?= widths[1] ?>">
+           <col style="width:<?= widths[2] ?>">
+           <col style="width:<?= widths[3] ?>">
+           <col style="width:<?= widths[4] ?>">
+           <col style="width:<?= widths[5] ?>">
+           <col style="width:<?= widths[6] ?>">
+           <col style="width:<?= widths[7] ?>">
+           <col style="width:<?= widths[8] ?>">
+           <col style="width:<?= widths[9] ?>">
+        </colgroup>
+        <tbody>
+          <tr class="total-row" style="background:#fff;">
+            <td colspan="7">
+              <div class="total-label-cell" style="justify-content:flex-end; width:100%; color:var(--muted); font-size:12px; font-weight:600;">
+                Tổng cộng nhóm CK <?= discountRate ?>%:
+              </div>
+            </td>
+            <td class="right" style="font-size:13px;font-weight:700;color:var(--charcoal);"><?= groupTotal.toLocaleString('vi-VN') ?></td>
+            <td colspan="2"></td>
+          </tr>
+          <tr class="total-row" style="background:#fff;">
+            <td colspan="7">
+              <div class="total-label-cell" style="justify-content:flex-end; width:100%; color:var(--muted); font-size:12px; font-weight:600;">
+                Chiết khấu <?= discountRate ?>%:
+              </div>
+            </td>
+            <td class="right" style="font-size:13px;font-weight:700;color:#d9534f;">-<?= groupDiscountAmount.toLocaleString('vi-VN') ?></td>
+            <td colspan="2"></td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="7">
+              <div class="total-label-cell" style="justify-content:flex-end; width:100%;">
+                Tổng tiền sau chiết khấu:
+              </div>
+            </td>
+            <td class="right" style="font-size:14px;font-weight:800;color:var(--green);"><?= (groupTotal - groupDiscountAmount).toLocaleString('vi-VN') ?></td>
+            <td colspan="2"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <? } ?>
+    
+    <? } // end group loop ?>
   </div>
 
   <div class="footer">
@@ -242,12 +275,17 @@ var exportQuote={
   sumAfterDiscount: <?= Number(quote.sumAfterDiscount)||0 ?>,
   finalTotal: <?= Number(quote.finalTotal)||0 ?>
 };
-var exportSections={};
-<? for(var secKey in sections){ var secObj=sections[secKey]; ?>
-exportSections[<?!= JSON.stringify(secKey) ?>]={
+var exportDiscountGroups={};
+<? for(var groupKey in discountGroups){ var group=discountGroups[groupKey]; ?>
+exportDiscountGroups[<?!= JSON.stringify(groupKey) ?>]={
+  discountRate: <?= Number(group.discountRate)||0 ?>,
+  discountAmount: <?= Number(group.discountAmount)||0 ?>,
+  total: <?= Number(group.total)||0 ?>,
+  sections: {}
+};
+<? for(var secName in group.sections) { var secObj=group.sections[secName]; ?>
+exportDiscountGroups[<?!= JSON.stringify(groupKey) ?>].sections[<?!= JSON.stringify(secName) ?>]={
   name: <?!= JSON.stringify(secObj.name||'') ?>,
-  discountRate: <?= Number(secObj.discountRate)||0 ?>,
-  discountAmount: <?= Number(secObj.discountAmount)||0 ?>,
   total: <?= Number(secObj.total)||0 ?>,
   items: [
   <? for(var ei=0;ei<secObj.items.length;ei++){var er=secObj.items[ei];var _ed=(er.description||'').toString().replace(/\s/g,'');if(_ed!==''){?>
@@ -266,7 +304,8 @@ exportSections[<?!= JSON.stringify(secKey) ?>]={
   <? }}?>
   ]
 };
-<? } ?>
+<? } // end sections ?>
+<? } // end discountGroups ?>
 </script>
 
 <script>
@@ -398,50 +437,63 @@ async function exportExcel(){
     ws.getRow(R).height=10;R++;
 
     var grandTotal=0,grandDiscount=0;
-    for(var secKey in exportSections){
-      var secObj=exportSections[secKey];
-      var secName=secObj.name;
-      var secDiscountRate=secObj.discountRate||0;
-      var secDiscountAmt=secObj.discountAmount||0;
-      var secTotal=secObj.total||0;
-      var items=secObj.items;
-      grandTotal+=secTotal;
-      grandDiscount+=secDiscountAmt;
-      ws.mergeCells('A'+R+':I'+R);var ch=ws.getCell('A'+R);ch.value=secName;ch.font={bold:true,size:12,color:{argb:WHITE}};ch.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};ch.alignment={horizontal:'left',vertical:'middle',indent:1};ws.getRow(R).height=26;R++;
-      var hRow=ws.getRow(R);hRow.values=['STT','HẠNG MỤC','KÍCH THƯỚC (MM)','ĐVT','KL','SL','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ'];
-      hRow.eachCell(function(cell){cell.font={bold:true,color:{argb:WHITE},size:10};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2d7a50'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=bT;});ws.getRow(R).height=28;R++;
-      for(var j=0;j<items.length;j++){
-        var r2=items[j],amt=Number(r2.amount)||0;
-        var klVal = (r2.kl && !isNaN(r2.kl)) ? Number(r2.kl) : r2.kl;
-        var qtyVal = (r2.qty && !isNaN(r2.qty)) ? Number(r2.qty) : r2.qty;
-        var dRow=ws.getRow(R);dRow.values=[j+1,r2.description,[r2.l,r2.w,r2.h].filter(Boolean).join(' × '),r2.uom,klVal,qtyVal,Number(r2.price)||0,amt,r2.note||''];
-        dRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};
-        dRow.getCell(2).font={bold:true};dRow.getCell(2).alignment={vertical:'middle',wrapText:true};
-        dRow.getCell(3).alignment={horizontal:'center',vertical:'middle',wrapText:true};
-        dRow.getCell(4).alignment={horizontal:'center',vertical:'middle'};
-        dRow.getCell(5).alignment={horizontal:'center',vertical:'middle'};
-        dRow.getCell(6).alignment={horizontal:'center',vertical:'middle'};
-        dRow.getCell(7).numFmt='#,##0';dRow.getCell(7).alignment={horizontal:'right',vertical:'middle'};
-        dRow.getCell(8).numFmt='#,##0';dRow.getCell(8).font={bold:true};dRow.getCell(8).alignment={horizontal:'right',vertical:'middle'};
-        dRow.getCell(9).alignment={vertical:'middle',wrapText:true,horizontal:'justify'};
-        dRow.eachCell(function(cell){cell.border=bT;});ws.getRow(R).height=44;R++;
-      }
-      // Tổng cộng section
-      ws.mergeCells('A'+R+':G'+R);var stL=ws.getCell('A'+R);stL.value='TỔNG CỘNG '+secName+':';stL.font={bold:true,size:11};stL.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stL.alignment={horizontal:'right',vertical:'middle'};
-      var stV=ws.getCell('H'+R);stV.value=secTotal;stV.numFmt='#,##0';stV.font={bold:true,size:12,color:{argb:GREEN}};stV.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stV.alignment={horizontal:'right',vertical:'middle'};
-      ws.getCell('I'+R).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};ws.getRow(R).height=24;R++;
-      // Chiết khấu section (nếu có)
-      if(secDiscountRate>0){
-        ws.mergeCells('A'+R+':G'+R);var ckL=ws.getCell('A'+R);ckL.value='Chiết khấu '+secDiscountRate+'%:';ckL.font={bold:true,size:11,color:{argb:'FFd9534f'}};ckL.alignment={horizontal:'right',vertical:'middle'};
-        var ckV=ws.getCell('H'+R);ckV.value=-secDiscountAmt;ckV.numFmt='#,##0';ckV.font={bold:true,size:12,color:{argb:'FFd9534f'}};ckV.alignment={horizontal:'right',vertical:'middle'};
+    for(var groupKey in exportDiscountGroups){
+      var group = exportDiscountGroups[groupKey];
+      var groupDiscountRate = group.discountRate || 0;
+      var groupDiscountAmt = group.discountAmount || 0;
+      var groupTotal = group.total || 0;
+      
+      grandTotal += groupTotal;
+      grandDiscount += groupDiscountAmt;
+      
+      for(var secName in group.sections) {
+        var secObj = group.sections[secName];
+        var secTotal = secObj.total || 0;
+        var items = secObj.items;
+        
+        ws.mergeCells('A'+R+':I'+R);var ch=ws.getCell('A'+R);ch.value=secName;ch.font={bold:true,size:12,color:{argb:WHITE}};ch.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};ch.alignment={horizontal:'left',vertical:'middle',indent:1};ws.getRow(R).height=26;R++;
+        var hRow=ws.getRow(R);hRow.values=['STT','HẠNG MỤC','KÍCH THƯỚC (MM)','ĐVT','KL','SL','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ'];
+        hRow.eachCell(function(cell){cell.font={bold:true,color:{argb:WHITE},size:10};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2d7a50'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=bT;});ws.getRow(R).height=28;R++;
+        
+        for(var j=0;j<items.length;j++){
+          var r2=items[j],amt=Number(r2.amount)||0;
+          var klVal = (r2.kl && !isNaN(r2.kl)) ? Number(r2.kl) : r2.kl;
+          var qtyVal = (r2.qty && !isNaN(r2.qty)) ? Number(r2.qty) : r2.qty;
+          var dRow=ws.getRow(R);dRow.values=[j+1,r2.description,[r2.l,r2.w,r2.h].filter(Boolean).join(' × '),r2.uom,klVal,qtyVal,Number(r2.price)||0,amt,r2.note||''];
+          dRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};
+          dRow.getCell(2).font={bold:true};dRow.getCell(2).alignment={vertical:'middle',wrapText:true};
+          dRow.getCell(3).alignment={horizontal:'center',vertical:'middle',wrapText:true};
+          dRow.getCell(4).alignment={horizontal:'center',vertical:'middle'};
+          dRow.getCell(5).alignment={horizontal:'center',vertical:'middle'};
+          dRow.getCell(6).alignment={horizontal:'center',vertical:'middle'};
+          dRow.getCell(7).numFmt='#,##0';dRow.getCell(7).alignment={horizontal:'right',vertical:'middle'};
+          dRow.getCell(8).numFmt='#,##0';dRow.getCell(8).font={bold:true};dRow.getCell(8).alignment={horizontal:'right',vertical:'middle'};
+          dRow.getCell(9).alignment={vertical:'middle',wrapText:true,horizontal:'justify'};
+          dRow.eachCell(function(cell){cell.border=bT;});ws.getRow(R).height=44;R++;
+        }
+        // Tổng cộng section
+        ws.mergeCells('A'+R+':G'+R);var stL=ws.getCell('A'+R);stL.value='TỔNG CỘNG '+secName+':';stL.font={bold:true,size:11};stL.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stL.alignment={horizontal:'right',vertical:'middle'};
+        var stV=ws.getCell('H'+R);stV.value=secTotal;stV.numFmt='#,##0';stV.font={bold:true,size:12,color:{argb:GREEN}};stV.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stV.alignment={horizontal:'right',vertical:'middle'};
+        ws.getCell('I'+R).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};ws.getRow(R).height=24;R++;
+        ws.getRow(R).height=8;R++;
+      } // end section loop
+      
+      // Group Totals
+      if(groupDiscountRate>0){
+        ws.mergeCells('A'+R+':G'+R);var ckL=ws.getCell('A'+R);ckL.value='Tổng cộng nhóm CK '+groupDiscountRate+'%:';ckL.font={bold:true,size:11,color:{argb:'FF666666'}};ckL.alignment={horizontal:'right',vertical:'middle'};
+        var ckV=ws.getCell('H'+R);ckV.value=groupTotal;ckV.numFmt='#,##0';ckV.font={bold:true,size:12,color:{argb:'FF666666'}};ckV.alignment={horizontal:'right',vertical:'middle'};
         ws.getRow(R).height=20;R++;
+        
+        ws.mergeCells('A'+R+':G'+R);var ckL2=ws.getCell('A'+R);ckL2.value='Chiết khấu '+groupDiscountRate+'%:';ckL2.font={bold:true,size:11,color:{argb:'FFd9534f'}};ckL2.alignment={horizontal:'right',vertical:'middle'};
+        var ckV2=ws.getCell('H'+R);ckV2.value=-groupDiscountAmt;ckV2.numFmt='#,##0';ckV2.font={bold:true,size:12,color:{argb:'FFd9534f'}};ckV2.alignment={horizontal:'right',vertical:'middle'};
+        ws.getRow(R).height=20;R++;
+        
         ws.mergeCells('A'+R+':G'+R);var aftL=ws.getCell('A'+R);aftL.value='Tổng sau chiết khấu:';aftL.font={bold:true,size:11,color:{argb:GREEN}};aftL.alignment={horizontal:'right',vertical:'middle'};
-        var aftV=ws.getCell('H'+R);aftV.value=secTotal-secDiscountAmt;aftV.numFmt='#,##0';aftV.font={bold:true,size:12,color:{argb:GREEN}};aftV.alignment={horizontal:'right',vertical:'middle'};
+        var aftV=ws.getCell('H'+R);aftV.value=groupTotal-groupDiscountAmt;aftV.numFmt='#,##0';aftV.font={bold:true,size:12,color:{argb:GREEN}};aftV.alignment={horizontal:'right',vertical:'middle'};
         ws.getRow(R).height=20;R++;
       }
-      ws.getRow(R).height=8;R++;
+      ws.getRow(R).height=6;R++;
     }
-    ws.getRow(R).height=6;R++;
     var grandAfterDiscount=grandTotal-grandDiscount;
     var finalVat=exportQuote.vatAmount||0;
     var finalTotal=grandAfterDiscount+finalVat;

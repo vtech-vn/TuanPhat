@@ -73,7 +73,7 @@ function getQuotePrintPage(e) {
 
   // 3. Xử lý Chi tiết hạng mục (Quote_Line)
   var lineData = ss.getSheetByName("Quote_Line").getDataRange().getValues();
-  var sections = {};
+  var discountGroups = {};
   var imageCache = {}; 
   var sumTotal = 0;
   var sumDiscount = 0;
@@ -82,15 +82,23 @@ function getQuotePrintPage(e) {
     if (lineData[j][1] == quoteId) {
       var sec = lineData[j][2] || "Khác";
       var discountRate = parseFloat(lineData[j][15]) || 0;
-      var secKey = sec + "||" + discountRate;
+      var groupKey = "discount_" + discountRate;
       
-      if (!sections[secKey]) {
-        sections[secKey] = {
-          name: sec,
+      if (!discountGroups[groupKey]) {
+        discountGroups[groupKey] = {
           discountRate: discountRate,
-          items: [],
+          sections: {},
           total: 0,
           discountAmount: 0
+        };
+      }
+      var group = discountGroups[groupKey];
+      
+      if (!group.sections[sec]) {
+        group.sections[sec] = {
+          name: sec,
+          items: [],
+          total: 0
         };
       }
       
@@ -121,10 +129,11 @@ function getQuotePrintPage(e) {
       
       var price = parseFloat(lineData[j][11]) || 0;
       var amount = parseFloat(lineData[j][12]) || 0;
-      sections[secKey].total += amount;
+      group.sections[sec].total += amount;
+      group.total += amount;
       sumTotal += amount;
       
-      sections[secKey].items.push({
+      group.sections[sec].items.push({
         description: lineData[j][4] || "", 
         l: lineData[j][5] || "",
         w: lineData[j][6] || "",
@@ -140,10 +149,10 @@ function getQuotePrintPage(e) {
     }
   }
 
-  for (var key in sections) {
-    var secObj = sections[key];
-    secObj.discountAmount = secObj.total * (secObj.discountRate / 100);
-    sumDiscount += secObj.discountAmount;
+  for (var key in discountGroups) {
+    var grp = discountGroups[key];
+    grp.discountAmount = grp.total * (grp.discountRate / 100);
+    sumDiscount += grp.discountAmount;
   }
 
   var sumAfterDiscount = sumTotal - sumDiscount;
@@ -171,7 +180,7 @@ function getQuotePrintPage(e) {
   var template = HtmlService.createTemplateFromFile('QUOTE_UI');
   template.company = company;
   template.quote = quote;
-  template.sections = sections;
+  template.discountGroups = discountGroups;
   template.widths = widths;
 
   var htmlOutput = template.evaluate()
@@ -181,7 +190,7 @@ function getQuotePrintPage(e) {
 
   if (e.parameter.api === 'json') {
     var callback = e.parameter.callback;
-    var resultObj = { company: company, quote: quote, sections: sections, widths: widths };
+    var resultObj = { company: company, quote: quote, discountGroups: discountGroups, widths: widths };
     var result = JSON.stringify(resultObj);
     if (callback) {
       return ContentService.createTextOutput(callback + "(" + result + ")")
