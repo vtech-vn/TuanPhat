@@ -102,12 +102,12 @@
   </div>
 
   <div class="content-area">
-    <div v-for="(items, sectionName) in sections" :key="sectionName" style="margin-bottom:18px;">
+    <div v-for="(secObj, secKey) in sections" :key="secKey" style="margin-bottom:18px;">
       <div class="section-header">
         <div class="section-icon">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11a2 2 0 012-2h16a2 2 0 012 2v5H2v-5z"/><path d="M6 20v-3M18 20v-3"/></svg>
         </div>
-        <div class="section-title">{{ sectionName }}</div>
+        <div class="section-title">{{ secObj.name }}</div>
       </div>
       <div class="table-wrapper">
         <table>
@@ -124,7 +124,7 @@
             <th :style="{ width: widths[9] }">Ghi chú</th>
           </tr></thead>
           <tbody>
-            <template v-for="(r, index) in filteredItems(items)">
+            <template v-for="(r, index) in filteredItems(secObj.items)">
             <tr>
               <td class="center" style="color:#bbb;font-size:12px;">{{ index + 1 }}</td>
               <td style="font-weight:700;color:#1a1a1a;padding-left:10px;">{{ r.description }}</td>
@@ -144,12 +144,32 @@
               <td colspan="7">
                 <div class="total-label-cell">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="#1a5c38"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20C19 20 22 3 22 3c-1 2-8 2-8 2s4-1 5 4c-3.52-1-6-1-8.33 3.21C8.4 12 8 12.5 8 14H6C6 8 8 5 8 5s-6 3-6 9c0 3 1.5 5 3.82 6.34A12.25 12.25 0 0117 8z"/></svg>
-                  TỔNG CỘNG {{ sectionName }}:
+                  TỔNG CỘNG {{ secObj.name }}:
                 </div>
               </td>
-              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);">{{ computeSectionTotal(items).toLocaleString('vi-VN') }}</td>
+              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);">{{ Number(secObj.total||0).toLocaleString('vi-VN') }}</td>
               <td colspan="2"></td>
             </tr>
+            <template v-if="secObj.discountRate > 0">
+            <tr class="total-row" style="background:#fff;">
+              <td colspan="7">
+                <div class="total-label-cell" style="color:var(--muted);font-size:12px;font-weight:600;">
+                  Chiết khấu {{ secObj.discountRate }}%:
+                </div>
+              </td>
+              <td class="right" style="font-size:13px;font-weight:700;color:#d9534f;">-{{ Number(secObj.discountAmount||0).toLocaleString('vi-VN') }}</td>
+              <td colspan="2"></td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="7">
+                <div class="total-label-cell">
+                  Tổng tiền sau chiết khấu:
+                </div>
+              </td>
+              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);">{{ (Number(secObj.total||0) - Number(secObj.discountAmount||0)).toLocaleString('vi-VN') }}</td>
+              <td colspan="2"></td>
+            </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -172,17 +192,17 @@
       <div class="wallet-circle"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a2 2 0 000 4h4v-4z"/></svg></div>
       <div class="footer-total-text">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng nội thất:</div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng tiền:</div>
           <div style="font-weight:700;color:rgba(255,255,255,0.9);">{{ Number(quote.total).toLocaleString('vi-VN') }} đ</div>
         </div>
-        <template v-if="quote.discountRate > 0 || quote.discountAmount > 0">
+        <template v-if="quote.discountAmount > 0">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Chiết khấu {{ quote.discountRate||0 }}%:</div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng chiết khấu:</div>
           <div style="font-weight:700;color:rgba(255,255,255,0.9);">-{{ Number(quote.discountAmount||0).toLocaleString('vi-VN') }} đ</div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.2);">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng tiền:</div>
-          <div style="font-weight:700;color:rgba(255,255,255,0.9);">{{ (Number(quote.total) - Number(quote.discountAmount||0)).toLocaleString('vi-VN') }} đ</div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng sau CK:</div>
+          <div style="font-weight:700;color:rgba(255,255,255,0.9);">{{ Number(quote.sumAfterDiscount||0).toLocaleString('vi-VN') }} đ</div>
         </div>
         </template>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.2);">
@@ -191,7 +211,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <div class="total-label-right" style="margin-bottom:0;font-size:13px;font-weight:800;">Tổng tiền có VAT:</div>
-          <div class="total-amount" style="font-size:17px;">{{ (Number(quote.total) - Number(quote.discountAmount||0) + Number(quote.vatAmount||0)).toLocaleString('vi-VN') }} đ</div>
+          <div class="total-amount" style="font-size:17px;">{{ Number(quote.finalTotal||0).toLocaleString('vi-VN') }} đ</div>
         </div>
       </div>
     </div>
@@ -456,6 +476,7 @@ new Vue({
   },
   methods: {
     filteredItems(items) {
+      if (!Array.isArray(items)) return [];
       return items.filter(r => (r.description||'').toString().replace(/\s/g,'') !== '');
     },
     computeSectionTotal(items) {
