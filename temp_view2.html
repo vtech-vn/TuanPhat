@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
   <base target="_top">
@@ -156,8 +156,8 @@
         </div>
       </div>
       
-      <div v-if="group.discountRate > 0 && Object.keys(discountGroups).length > 1" class="table-wrapper" style="margin-bottom:25px; margin-top:-10px; border-top-left-radius:0; border-top-right-radius:0; border:none; background:transparent;">
-        <table style="border-collapse:separate; border-spacing:0;">
+      <div v-if="group.discountRate > 0" class="table-wrapper" style="margin-bottom:25px; margin-top:-10px; border-top-left-radius:0; border-top-right-radius:0;">
+        <table>
           <colgroup>
             <col :style="{ width: widths[0] }">
             <col :style="{ width: widths[1] }">
@@ -171,24 +171,32 @@
             <col :style="{ width: widths[9] }">
           </colgroup>
           <tbody>
-            <tr>
-              <td colspan="7" style="border:none; padding:4px 0;"></td>
-              <td colspan="3" style="border:none; padding:6px 12px 6px 0;">
-                <div style="border:1px solid var(--grey-border); border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 14px; background:#fafafa; border-bottom:1px solid var(--grey-border);">
-                    <span style="font-size:12px; font-weight:600; color:var(--muted);">Tổng nhóm CK {{ group.discountRate }}%</span>
-                    <span style="font-size:13px; font-weight:700; color:var(--charcoal);">{{ Number(group.total||0).toLocaleString('vi-VN') }}</span>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 14px; background:#fff5f5; border-bottom:1px solid var(--grey-border);">
-                    <span style="font-size:12px; font-weight:600; color:#d9534f;">Chiết khấu {{ group.discountRate }}%</span>
-                    <span style="font-size:13px; font-weight:700; color:#d9534f;">-{{ Number(group.discountAmount||0).toLocaleString('vi-VN') }}</span>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 14px; background:var(--green-light);">
-                    <span style="font-size:12px; font-weight:700; color:var(--green);">Tổng sau CK {{ group.discountRate }}%</span>
-                    <span style="font-size:14px; font-weight:800; color:var(--green);">{{ Number(group.total - group.discountAmount).toLocaleString('vi-VN') }}</span>
-                  </div>
+            <tr class="total-row" style="background:#fff;">
+              <td colspan="7">
+                <div class="total-label-cell" style="justify-content:flex-end; width:100%; color:var(--muted); font-size:12px; font-weight:600;">
+                  Tổng cộng nhóm CK {{ group.discountRate }}%:
                 </div>
               </td>
+              <td class="right" style="font-size:13px;font-weight:700;color:var(--charcoal);">{{ Number(group.total||0).toLocaleString('vi-VN') }}</td>
+              <td colspan="2"></td>
+            </tr>
+            <tr class="total-row" style="background:#fff;">
+              <td colspan="7">
+                <div class="total-label-cell" style="justify-content:flex-end; width:100%; color:var(--muted); font-size:12px; font-weight:600;">
+                  Chiết khấu {{ group.discountRate }}%:
+                </div>
+              </td>
+              <td class="right" style="font-size:13px;font-weight:700;color:#d9534f;">-{{ Number(group.discountAmount||0).toLocaleString('vi-VN') }}</td>
+              <td colspan="2"></td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="7">
+                <div class="total-label-cell" style="justify-content:flex-end; width:100%;">
+                  Tổng tiền sau chiết khấu:
+                </div>
+              </td>
+              <td class="right" style="font-size:14px;font-weight:800;color:var(--green);">{{ Number(group.total - group.discountAmount).toLocaleString('vi-VN') }}</td>
+              <td colspan="2"></td>
             </tr>
           </tbody>
         </table>
@@ -217,10 +225,7 @@
         </div>
         <template v-if="quote.discountAmount > 0">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">
-            <template v-if="Object.keys(discountGroups).length === 1">Chiết khấu {{ Object.values(discountGroups)[0].discountRate }}%:</template>
-            <template v-else>Tổng chiết khấu:</template>
-          </div>
+          <div class="total-label-right" style="margin-bottom:0;text-transform:none;font-size:12px;">Tổng chiết khấu:</div>
           <div style="font-weight:700;color:rgba(255,255,255,0.9);">-{{ Number(quote.discountAmount||0).toLocaleString('vi-VN') }} đ</div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.2);">
@@ -239,7 +244,6 @@
       </div>
     </div>
   </div>
-</div>
 </div>
 </div>
 </div>
@@ -381,68 +385,49 @@ async function exportExcel(){
     ws.getRow(R).height=10;R++;
 
     var grandTotal=0;
-    for(var groupKey in exportDiscountGroups){
-      var group = exportDiscountGroups[groupKey];
-      for(var secName in group.sections){
-        var secObj = group.sections[secName];
-        ws.mergeCells('A'+R+':I'+R);var ch=ws.getCell('A'+R);ch.value=secObj.name;ch.font={bold:true,size:12,color:{argb:WHITE}};ch.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};ch.alignment={horizontal:'left',vertical:'middle',indent:1};ws.getRow(R).height=26;R++;
-        var hRow=ws.getRow(R);hRow.values=['STT','HẠNG MỤC','KÍCH THƯỚC (MM)','ĐVT','KL','SL','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ'];
-        hRow.eachCell(function(cell){cell.font={bold:true,color:{argb:WHITE},size:10};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2d7a50'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=bT;});ws.getRow(R).height=28;R++;
-        var items=secObj.items,secTotal=0;
-        for(var j=0;j<items.length;j++){
-          if (!items[j].description || items[j].description.toString().replace(/\s/g,'') === '') continue;
-          var r2=items[j],amt=Number(r2.amount)||0;secTotal+=amt;grandTotal+=amt;
-          var klVal = (r2.kl && !isNaN(r2.kl)) ? Number(r2.kl) : r2.kl;
-          var qtyVal = (r2.qty && !isNaN(r2.qty)) ? Number(r2.qty) : r2.qty;
-          var dRow=ws.getRow(R);dRow.values=[j+1,r2.description,[r2.l,r2.w,r2.h].filter(Boolean).join(' × '),r2.uom,klVal,qtyVal,Number(r2.price)||0,amt,r2.note||''];
-          dRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};
-          dRow.getCell(2).font={bold:true};dRow.getCell(2).alignment={vertical:'middle',wrapText:true};
-          dRow.getCell(3).alignment={horizontal:'center',vertical:'middle',wrapText:true};
-          dRow.getCell(4).alignment={horizontal:'center',vertical:'middle'};
-          dRow.getCell(5).alignment={horizontal:'center',vertical:'middle'};
-          dRow.getCell(6).alignment={horizontal:'center',vertical:'middle'};
-          dRow.getCell(7).numFmt='#,##0';dRow.getCell(7).alignment={horizontal:'right',vertical:'middle'};
-          dRow.getCell(8).numFmt='#,##0';dRow.getCell(8).font={bold:true};dRow.getCell(8).alignment={horizontal:'right',vertical:'middle'};
-          dRow.getCell(9).alignment={vertical:'middle',wrapText:true,horizontal:'justify'};
-          dRow.eachCell(function(cell){cell.border=bT;});ws.getRow(R).height=44;R++;
-        }
-        ws.mergeCells('A'+R+':G'+R);var stL=ws.getCell('A'+R);stL.value='TỔNG CỘNG '+secObj.name+':';stL.font={bold:true,size:11};stL.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stL.alignment={horizontal:'right',vertical:'middle'};
-        var stV=ws.getCell('H'+R);stV.value=secTotal;stV.numFmt='#,##0';stV.font={bold:true,size:12,color:{argb:GREEN}};stV.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stV.alignment={horizontal:'right',vertical:'middle'};
-        ws.getCell('I'+R).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};ws.getRow(R).height=24;R++;
-        ws.getRow(R).height=8;R++;
-      }
-      
-      if (group.discountRate > 0 && Object.keys(exportDiscountGroups).length > 1) {
-        ws.mergeCells('A'+R+':G'+R);var gtLg1=ws.getCell('A'+R);gtLg1.value='Tổng nhóm CK '+group.discountRate+'%:';gtLg1.font={bold:true,size:11,color:{argb:'FF666666'}};gtLg1.alignment={horizontal:'right',vertical:'middle'};
-        var gtVg1=ws.getCell('H'+R);gtVg1.value=group.total;gtVg1.numFmt='#,##0';gtVg1.font={bold:true,size:11,color:{argb:'FF444444'}};gtVg1.alignment={horizontal:'right',vertical:'middle'};
-        ws.getRow(R).height=20;R++;
+    for(var secName in exportSections){
+      ws.mergeCells('A'+R+':I'+R);var ch=ws.getCell('A'+R);ch.value=secName;ch.font={bold:true,size:12,color:{argb:WHITE}};ch.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};ch.alignment={horizontal:'left',vertical:'middle',indent:1};ws.getRow(R).height=26;R++;
+      var hRow=ws.getRow(R);hRow.values=['STT','HẠNG MỤC','KÍCH THƯỚC (MM)','ĐVT','KL','SL','ĐƠN GIÁ','THÀNH TIỀN','GHI CHÚ'];
+      hRow.eachCell(function(cell){cell.font={bold:true,color:{argb:WHITE},size:10};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2d7a50'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=bT;});ws.getRow(R).height=28;R++;
+      var items=exportSections[secName],secTotal=0;
+      for(var j=0;j<items.length;j++){
+        var r2=items[j],amt=Number(r2.amount)||0;secTotal+=amt;grandTotal+=amt;
+        var klVal = (r2.kl && !isNaN(r2.kl)) ? Number(r2.kl) : r2.kl;
+        var qtyVal = (r2.qty && !isNaN(r2.qty)) ? Number(r2.qty) : r2.qty;
+
+        var dRow=ws.getRow(R);dRow.values=[j+1,r2.description,[r2.l,r2.w,r2.h].filter(Boolean).join(' × '),r2.uom,klVal,qtyVal,Number(r2.price)||0,amt,r2.note||''];
         
-        ws.mergeCells('A'+R+':G'+R);var gtLg2=ws.getCell('A'+R);gtLg2.value='Chiết khấu '+group.discountRate+'%:';gtLg2.font={bold:true,size:11,color:{argb:'FF666666'}};gtLg2.alignment={horizontal:'right',vertical:'middle'};
-        var gtVg2=ws.getCell('H'+R);gtVg2.value= -1 * group.discountAmount;gtVg2.numFmt='#,##0';gtVg2.font={bold:true,size:11,color:{argb:'FFd9534f'}};gtVg2.alignment={horizontal:'right',vertical:'middle'};
-        ws.getRow(R).height=20;R++;
+        dRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};
+        dRow.getCell(2).font={bold:true};dRow.getCell(2).alignment={vertical:'middle',wrapText:true};
         
-        ws.mergeCells('A'+R+':G'+R);var gtLg3=ws.getCell('A'+R);gtLg3.value='Tổng sau CK '+group.discountRate+'%:';gtLg3.font={bold:true,size:11,color:{argb:'FF444444'}};gtLg3.alignment={horizontal:'right',vertical:'middle'};
-        var gtVg3=ws.getCell('H'+R);gtVg3.value=group.total - group.discountAmount;gtVg3.numFmt='#,##0';gtVg3.font={bold:true,size:12,color:{argb:GREEN}};gtVg3.alignment={horizontal:'right',vertical:'middle'};
-        ws.getRow(R).height=20;R++;
+        dRow.getCell(3).alignment={horizontal:'center',vertical:'middle',wrapText:true};
+        dRow.getCell(4).alignment={horizontal:'center',vertical:'middle'};
+        dRow.getCell(5).alignment={horizontal:'center',vertical:'middle'};
+        dRow.getCell(6).alignment={horizontal:'center',vertical:'middle'};
+
+        dRow.getCell(7).numFmt='#,##0';dRow.getCell(7).alignment={horizontal:'right',vertical:'middle'};
+        dRow.getCell(8).numFmt='#,##0';dRow.getCell(8).font={bold:true};dRow.getCell(8).alignment={horizontal:'right',vertical:'middle'};
+        dRow.getCell(9).alignment={vertical:'middle',wrapText:true,horizontal:'justify'};
+        dRow.eachCell(function(cell){cell.border=bT;});ws.getRow(R).height=44;R++;
       }
-      ws.getRow(R).height=6;R++;
+      ws.mergeCells('A'+R+':G'+R);var stL=ws.getCell('A'+R);stL.value='TỔNG CỘNG '+secName+':';stL.font={bold:true,size:11};stL.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stL.alignment={horizontal:'right',vertical:'middle'};
+      var stV=ws.getCell('H'+R);stV.value=secTotal;stV.numFmt='#,##0';stV.font={bold:true,size:12,color:{argb:GREEN}};stV.fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};stV.alignment={horizontal:'right',vertical:'middle'};
+      ws.getCell('I'+R).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREY}};ws.getRow(R).height=24;R++;
+      ws.getRow(R).height=8;R++;
     }
-    
     ws.getRow(R).height=6;R++;
     
-    ws.mergeCells('A'+R+':G'+R);var gtL1=ws.getCell('A'+R);gtL1.value='Tổng tiền:';gtL1.font={bold:true,size:11,color:{argb:'FF444444'}};gtL1.alignment={horizontal:'right',vertical:'middle'};
+    ws.mergeCells('A'+R+':G'+R);var gtL1=ws.getCell('A'+R);gtL1.value='Tổng nội thất:';gtL1.font={bold:true,size:11,color:{argb:'FF444444'}};gtL1.alignment={horizontal:'right',vertical:'middle'};
     var gtV1=ws.getCell('H'+R);gtV1.value=grandTotal;gtV1.numFmt='#,##0';gtV1.font={bold:true,size:12,color:{argb:'FF444444'}};gtV1.alignment={horizontal:'right',vertical:'middle'};
     ws.getRow(R).height=20;R++;
 
-    if (exportQuote.discountAmount > 0) {
-      var numGroups = Object.keys(exportDiscountGroups).length;
-      var discLbl = numGroups === 1 ? 'Chiết khấu '+Object.values(exportDiscountGroups)[0].discountRate+'%:' : 'Tổng chiết khấu:';
-      ws.mergeCells('A'+R+':G'+R);var gtL2=ws.getCell('A'+R);gtL2.value=discLbl;gtL2.font={bold:true,size:11,color:{argb:'FF444444'}};gtL2.alignment={horizontal:'right',vertical:'middle'};
-      var gtV2=ws.getCell('H'+R);gtV2.value= -1 * exportQuote.discountAmount;gtV2.numFmt='#,##0';gtV2.font={bold:true,size:12,color:{argb:'FF444444'}};gtV2.alignment={horizontal:'right',vertical:'middle'};
+    if (exportQuote.discountRate > 0 || exportQuote.discountAmount > 0) {
+      ws.mergeCells('A'+R+':G'+R);var gtL2=ws.getCell('A'+R);gtL2.value='Chiết khấu ' + (exportQuote.discountRate||0) + '%:';gtL2.font={bold:true,size:11,color:{argb:'FF444444'}};gtL2.alignment={horizontal:'right',vertical:'middle'};
+      var gtV2=ws.getCell('H'+R);gtV2.value= -1 * (exportQuote.discountAmount||0);gtV2.numFmt='#,##0';gtV2.font={bold:true,size:12,color:{argb:'FF444444'}};gtV2.alignment={horizontal:'right',vertical:'middle'};
       ws.getRow(R).height=20;R++;
 
-      ws.mergeCells('A'+R+':G'+R);var gtL3=ws.getCell('A'+R);gtL3.value='Tổng sau CK:';gtL3.font={bold:true,size:11,color:{argb:'FF444444'}};gtL3.alignment={horizontal:'right',vertical:'middle'};
-      var gtV3=ws.getCell('H'+R);gtV3.value=grandTotal - exportQuote.discountAmount;gtV3.numFmt='#,##0';gtV3.font={bold:true,size:12,color:{argb:'FF444444'}};gtV3.alignment={horizontal:'right',vertical:'middle'};
+      ws.mergeCells('A'+R+':G'+R);var gtL3=ws.getCell('A'+R);gtL3.value='Tổng tiền:';gtL3.font={bold:true,size:11,color:{argb:'FF444444'}};gtL3.alignment={horizontal:'right',vertical:'middle'};
+      var gtV3=ws.getCell('H'+R);gtV3.value=grandTotal - (exportQuote.discountAmount||0);gtV3.numFmt='#,##0';gtV3.font={bold:true,size:12,color:{argb:'FF444444'}};gtV3.alignment={horizontal:'right',vertical:'middle'};
       ws.getRow(R).height=20;R++;
     }
     
@@ -492,32 +477,13 @@ new Vue({
       if (data && data.quote) {
         this.company = data.company;
         this.quote = data.quote;
-        let groups = {};
-        if (data.sections) {
-          Object.keys(data.sections).forEach(key => {
-            let sec = data.sections[key];
-            let dr = sec.discountRate || 0;
-            if (!groups[dr]) {
-              groups[dr] = {
-                discountRate: dr,
-                total: 0,
-                discountAmount: 0,
-                sections: {}
-              };
-            }
-            groups[dr].sections[key] = sec;
-            groups[dr].total += (sec.total || 0);
-            groups[dr].discountAmount += (sec.discountAmount || 0);
-          });
-        }
-        this.discountGroups = groups;
+        this.discountGroups = data.discountGroups;
         if (data.widths) this.widths = data.widths;
         
         // Setup variables for exportExcel and generatePDF to work
         window.exportCompany = data.company;
         window.exportQuote = data.quote;
-        window.exportDiscountGroups = groups;
-        window.exportSections = data.sections;
+        window.exportDiscountGroups = data.discountGroups;
         
         this.loading = false;
       } else {
@@ -551,3 +517,4 @@ new Vue({
 
 </body>
 </html>
+
