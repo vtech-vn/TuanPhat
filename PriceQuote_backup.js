@@ -1,4 +1,4 @@
-function doGet(e) {
+function doGet_backup(e) {
   var quoteId = e.parameter.id;
   if (!quoteId) return HtmlService.createHtmlOutput("<h3>Lỗi: Thiếu ID!</h3>");
 

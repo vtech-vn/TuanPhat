@@ -492,32 +492,21 @@ new Vue({
       if (data && data.quote) {
         this.company = data.company;
         this.quote = data.quote;
-        let groups = {};
-        if (data.sections) {
-          Object.keys(data.sections).forEach(key => {
-            let sec = data.sections[key];
-            let dr = sec.discountRate || 0;
-            if (!groups[dr]) {
-              groups[dr] = {
-                discountRate: dr,
-                total: 0,
-                discountAmount: 0,
-                sections: {}
-              };
-            }
-            groups[dr].sections[key] = sec;
-            groups[dr].total += (sec.total || 0);
-            groups[dr].discountAmount += (sec.discountAmount || 0);
-          });
+        
+        // Backend now returns discountGroups directly
+        if (data.discountGroups) {
+          this.discountGroups = data.discountGroups;
+        } else {
+          this.discountGroups = {};
         }
-        this.discountGroups = groups;
+
         if (data.widths) this.widths = data.widths;
         
         // Setup variables for exportExcel and generatePDF to work
         window.exportCompany = data.company;
         window.exportQuote = data.quote;
-        window.exportDiscountGroups = groups;
-        window.exportSections = data.sections;
+        window.exportDiscountGroups = this.discountGroups;
+        window.exportSections = data.sections || {};
         
         this.loading = false;
       } else {

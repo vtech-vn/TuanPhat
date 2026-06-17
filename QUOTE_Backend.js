@@ -144,7 +144,8 @@ function getQuotePrintPage(e) {
         price: price,
         amount: amount,
         note: lineData[j][13] || "",
-        img: base64Img
+        img: base64Img,
+        order: parseFloat(lineData[j][16]) || 9999
       });
     }
   }
@@ -153,6 +154,12 @@ function getQuotePrintPage(e) {
     var grp = discountGroups[key];
     grp.discountAmount = grp.total * (grp.discountRate / 100);
     sumDiscount += grp.discountAmount;
+    // Sort items by order ascending within each section
+    for (var secKey in grp.sections) {
+      grp.sections[secKey].items.sort(function(a, b) {
+        return a.order - b.order;
+      });
+    }
   }
 
   var sumAfterDiscount = sumTotal - sumDiscount;
